@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>SufiyanOS</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div id="top">
@@ -12,22 +13,64 @@
     <span id="timeElement">Loading time…</span>
   </div>
 
-  <div id="welcome" style="top: 50%; left: 50%;">
-    <div id="welcomeheader">
-      <p>SufiyanOS</p>
-    </div>
-    <div>
-      <h1>Welcome to SufiyanOS</h1>
-      <p>Your personal web operating system.</p>
-    </div>
-  </div>
+  <main id="desktopApps" aria-label="Applications">
+    <button class="app-icon" id="aboutIcon"><span class="app-glyph">◉</span><span>About</span></button>
+    <button class="app-icon" id="labIcon"><span class="app-glyph">⌘</span><span>Lab</span></button>
+    <button class="app-icon" id="notesIcon"><span class="app-glyph">✎</span><span>Notes</span></button>
+    <button class="app-icon" id="linksIcon"><span class="app-glyph">↗</span><span>Links</span></button>
+  </main>
 
-  <script>
-    function updateTime() {
-      document.querySelector("#timeElement").innerHTML = new Date().toLocaleString();
-    }
-    updateTime();
-    setInterval(updateTime, 1000);
-  </script>
+  <section class="window" id="welcome" style="top: 50%; left: 50%;">
+    <div class="windowheader" id="welcomeheader"><span></span><p class="headertext">Welcome</p><span></span></div>
+    <div class="windowbody hero">
+      <div>
+        <span class="eyebrow">PERSONAL OPERATING SYSTEM</span>
+        <h1>Welcome to SufiyanOS.</h1>
+        <p class="muted">A small web desktop for exploring ideas, projects, notes, and experiments.</p>
+        <div class="hero-actions">
+          <button class="primary" id="openLab">Open Lab</button>
+          <button class="secondary" id="openAbout">About me</button>
+        </div>
+      </div>
+      <div class="hero-orb" aria-hidden="true">S</div>
+    </div>
+  </section>
+
+  <section class="window" id="about" style="top: 50%; left: 50%; display:none;">
+    <div class="windowheader" id="aboutheader"><button class="closebutton" id="aboutclose">×</button><p class="headertext">About</p><span></span></div>
+    <div class="windowbody">
+      <span class="eyebrow">PROFILE</span>
+      <h2>Curious by default.</h2>
+      <p class="muted">This desktop is a playground for technology, software, design, AI, gaming, and the web.</p>
+      <div class="stat-grid"><div><b>01</b>Build</div><div><b>02</b>Explore</div><div><b>03</b>Learn</div></div>
+    </div>
+  </section>
+
+  <section class="window" id="lab" style="top: 50%; left: 50%; display:none;">
+    <div class="windowheader" id="labheader"><button class="closebutton" id="labclose">×</button><p class="headertext">Lab</p><span></span></div>
+    <div class="projects-layout">
+      <aside id="projectSidebar" class="project-sidebar"></aside>
+      <article id="projectContent" class="project-content"></article>
+    </div>
+  </section>
+
+  <section class="window" id="notes" style="top: 50%; left: 50%; display:none;">
+    <div class="windowheader" id="notesheader"><button class="closebutton" id="notesclose">×</button><p class="headertext">Notes</p><span></span></div>
+    <div class="notes-layout">
+      <nav id="notesSidebar" class="notes-sidebar"></nav>
+      <article id="notesContent" class="notes-content"></article>
+    </div>
+  </section>
+
+  <section class="window" id="links" style="top: 50%; left: 50%; display:none;">
+    <div class="windowheader" id="linksheader"><button class="closebutton" id="linksclose">×</button><p class="headertext">Links</p><span></span></div>
+    <div class="windowbody links-page">
+      <a href="https://github.com/Yourfiyan" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
+      <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn <span>↗</span></a>
+      <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify <span>↗</span></a>
+    </div>
+  </section>
+
+  <script src="./script.js"></script>
 </body>
 </html>
