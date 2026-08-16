@@ -6,7 +6,28 @@
   <title>SufiyanOS</title>
 </head>
 <body>
-  <h1>Welcome to SufiyanOS</h1>
-  <p>Your personal web operating system is being forged.</p>
+  <div id="top">
+    <button id="welcomeopen">SufiyanOS</button>
+    <span>Personal workspace</span>
+    <span id="timeElement">Loading time…</span>
+  </div>
+
+  <div id="welcome" style="top: 50%; left: 50%;">
+    <div id="welcomeheader">
+      <p>SufiyanOS</p>
+    </div>
+    <div>
+      <h1>Welcome to SufiyanOS</h1>
+      <p>Your personal web operating system.</p>
+    </div>
+  </div>
+
+  <script>
+    function updateTime() {
+      document.querySelector("#timeElement").innerHTML = new Date().toLocaleString();
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+  </script>
 </body>
 </html>
