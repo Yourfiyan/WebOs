@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img"
+  aria-label="A record sleeve with a vinyl disc sliding out">
+  <defs>
+    <linearGradient id="sleeve" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E8734A" />
+      <stop offset="1" stop-color="#A8452F" />
+    </linearGradient>
+    <linearGradient id="disc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#24475F" />
+      <stop offset="1" stop-color="#071320" />
+    </linearGradient>
+  </defs>
+
+  <!-- the vinyl, sliding out to the right -->
+  <g transform="translate(41 32)">
+    <circle r="21" fill="url(#disc)" />
+    <g fill="none" stroke="#7DD3FC" stroke-opacity="0.4" stroke-width="1.2">
+      <circle r="17" />
+      <circle r="13" />
+    </g>
+    <circle r="6.5" fill="#F2B65A" />
+    <circle r="1.6" fill="#071320" />
+  </g>
+
+  <!-- the sleeve, in front -->
+  <rect x="5" y="10" width="33" height="44" rx="4" fill="url(#sleeve)" />
+  <rect x="5" y="10" width="33" height="44" rx="4" fill="none" stroke="#0B1B2B" stroke-opacity="0.5"
+    stroke-width="1.5" />
+  <!-- spine stripe, so the sleeve still reads as a sleeve at 52px -->
+  <rect x="10" y="15" width="4" height="34" rx="2" fill="#F2B65A" fill-opacity="0.75" />
+</svg>
