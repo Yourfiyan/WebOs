@@ -1,43 +1,454 @@
-* { box-sizing: border-box; }
-:root { font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #f7f8fb; }
-html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-body { background: radial-gradient(circle at 18% 18%, #263a79 0, transparent 28%), radial-gradient(circle at 82% 72%, #104b4e 0, transparent 30%), linear-gradient(135deg,#070a10,#101827 58%,#071214); }
-button, a { font: inherit; }
-#top { position: absolute; z-index: 10000; inset: 12px 12px auto; height: 46px; display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(7,9,15,.62); backdrop-filter: blur(18px); color: #fff; }
-#top button { border: 1px solid rgba(255,255,255,.12); border-radius: 11px; padding: 7px 12px; color: #fff; background: rgba(255,255,255,.08); cursor: pointer; }
-#top button:hover { background: rgba(255,255,255,.14); }
-#desktopApps { position: absolute; z-index: 2; top: 76px; left: 16px; display: grid; grid-template-columns: repeat(2, 92px); gap: 10px; }
-.app-icon { width: 92px; height: 92px; border: 1px solid transparent; border-radius: 18px; color: #fff; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; cursor: pointer; }
-.app-icon:hover, .app-icon.selected { background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.14); }
-.app-glyph { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 14px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); font-size: 21px; }
-.window { position: absolute; display: flex; flex-direction: column; min-width: 340px; max-width: calc(100vw - 28px); max-height: calc(100vh - 86px); border: 1px solid rgba(255,255,255,.15); border-radius: 18px; background: rgba(14,18,28,.84); backdrop-filter: blur(20px); box-shadow: 0 25px 80px rgba(0,0,0,.4); overflow: hidden; }
-.windowheader { height: 48px; flex: 0 0 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid rgba(255,255,255,.08); cursor: grab; user-select: none; }
-.windowheader:active { cursor: grabbing; }
-.headertext { margin: 0; font-weight: 650; }
-.closebutton { width: 26px; height: 26px; border: 0; border-radius: 50%; background: #ff625d; color: white; cursor: pointer; }
-.closebutton:hover { filter: brightness(1.1); }
-.windowbody { padding: 22px; overflow: auto; }
-.eyebrow { font-size: 11px; letter-spacing: .14em; color: #8e9aaa; font-weight: 750; }
-h1 { font-size: clamp(34px,5vw,58px); line-height: .98; max-width: 600px; margin: 10px 0 16px; }
-h2 { font-size: 30px; margin: 8px 0 12px; }
-.muted { color: #aeb5c4; line-height: 1.7; }
-.hero { min-height: 310px; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-.hero-orb { width: 150px; height: 150px; flex: 0 0 150px; display: grid; place-items: center; border-radius: 42px; font-size: 62px; font-weight: 850; background: radial-gradient(circle at 30% 20%,#fff,rgba(255,255,255,.25) 9%,rgba(73,92,255,.38) 45%,rgba(0,0,0,.1) 72%); border: 1px solid rgba(255,255,255,.18); }
-.hero-actions { display: flex; gap: 9px; flex-wrap: wrap; }
-.primary, .secondary { border-radius: 11px; padding: 10px 14px; cursor: pointer; }
-.primary { border: 0; background: #fff; color: #0b0d13; }
-.secondary { border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.07); color: #fff; }
-.projects-layout, .notes-layout { display: flex; min-height: 410px; padding: 0; }
-.project-sidebar, .notes-sidebar { width: 190px; flex: 0 0 190px; padding: 14px; border-right: 1px solid rgba(255,255,255,.08); overflow: auto; }
-.project-sidebar button, .notes-sidebar button { width: 100%; text-align: left; border: 0; border-radius: 10px; padding: 10px; margin-bottom: 5px; color: #d9deea; background: transparent; cursor: pointer; }
-.project-sidebar button:hover, .project-sidebar button.active, .notes-sidebar button:hover, .notes-sidebar button.active { background: rgba(255,255,255,.09); color: #fff; }
-.project-content, .notes-content { padding: 24px; overflow: auto; flex: 1; }
-.project-card { padding: 18px; border-radius: 16px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08); }
-.tag { display: inline-block; margin: 0 5px 5px 0; padding: 5px 8px; border-radius: 999px; background: rgba(255,255,255,.08); color: #c5cbd7; font-size: 12px; }
-.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 22px; }
-.stat-grid div { padding: 16px; border-radius: 14px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
-.stat-grid b { display: block; font-size: 20px; margin-bottom: 4px; }
-.links-page { display: grid; gap: 10px; }
-.links-page a { display: flex; justify-content: space-between; padding: 14px 16px; border: 1px solid rgba(255,255,255,.08); border-radius: 13px; color: #fff; text-decoration: none; background: rgba(255,255,255,.04); }
-.links-page a:hover { background: rgba(255,255,255,.08); }
-@media (max-width: 620px) { #top span:nth-child(2) { display:none; } .hero-orb { display:none; } .projects-layout,.notes-layout { min-height: 330px; } .project-sidebar,.notes-sidebar { width: 125px; flex-basis:125px; } }
+/* ============================================================
+   Lookout OS — style.css
+   Windows have a lot in common, so their looks live here once
+   and every window reuses them.
+   ============================================================ */
+
+/* ---------- window shell ---------- */
+
+.window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border: solid 1px rgba(125, 211, 252, 0.25);
+  border-radius: 20px;
+  background-color: rgba(11, 27, 43, 0.62);
+  backdrop-filter: blur(14px);
+  box-shadow: 0px 24px 60px rgba(0, 0, 0, 0.45);
+  /* A window taller than the screen scrolls its own contents rather than
+     spilling off the bottom where it can't be reached. */
+  max-height: calc(100vh - 56px);
+}
+
+/* The dotted <abbr> underline browsers draw is scratchy at small sizes. */
+abbr[title] {
+  text-decoration: none;
+  border-bottom: dotted 1px rgba(125, 211, 252, 0.7);
+  cursor: help;
+}
+
+/* ---------- the drag handle ---------- */
+
+.windowheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 8px 12px;
+  cursor: grab;
+  /* without this, dragging selects the header text and it looks broken */
+  user-select: none;
+  /* the handle must never be the thing that shrinks when a window is capped */
+  flex-shrink: 0;
+}
+
+.windowheader:active {
+  cursor: grabbing;
+}
+
+.headertext {
+  margin: 0px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #7DD3FC;
+}
+
+/* Balances the close button so .headertext sits optically centred. */
+.headerspacer {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- close button ---------- */
+
+.closebutton {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  border-radius: 14px;
+  border: solid 1px rgba(0, 0, 0, 0.3);
+  background-color: #E8734A;
+  transition: background-color 120ms ease;
+}
+
+.closebutton:hover {
+  background-color: #F2B65A;
+}
+
+/* ---------- window content ---------- */
+
+.windowbody {
+  padding: 0px 24px 24px 24px;
+  /* When .window hits its max-height the body is what gives way and scrolls.
+     min-height: 0 is what allows a flex child to shrink below its content. */
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Keep scrollbars in the OS's palette rather than the browser's. */
+.windowbody::-webkit-scrollbar,
+.terminal-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.windowbody::-webkit-scrollbar-thumb,
+.terminal-output::-webkit-scrollbar-thumb {
+  background-color: rgba(125, 211, 252, 0.25);
+  border-radius: 8px;
+}
+
+.windowbody::-webkit-scrollbar-thumb:hover,
+.terminal-output::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(125, 211, 252, 0.4);
+}
+
+/* ---------- shared text + link styling ---------- */
+
+.title {
+  margin: 0px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: #F2B65A;
+}
+
+.subtitle {
+  margin-top: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #7DD3FC;
+}
+
+.body-text {
+  margin-top: 18px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.muted {
+  margin-top: 0px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #B6CEDD;
+}
+
+.postcard {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: solid 1px rgba(125, 211, 252, 0.2);
+}
+
+.pill {
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.pill-solid {
+  color: #0B1B2B;
+  background-color: #F2B65A;
+}
+
+.pill-ghost {
+  color: #7DD3FC;
+  background-color: rgba(125, 211, 252, 0.12);
+  margin-left: 6px;
+}
+
+.term {
+  color: #7DD3FC;
+}
+
+.accent {
+  color: #F2B65A;
+}
+
+.strike {
+  color: #6B8CA3;
+}
+
+.replaced {
+  text-decoration: none;
+  border-bottom: solid 2px #F2B65A;
+}
+
+/* ---------- top bar ---------- */
+
+#top {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0px;
+  backdrop-filter: blur(14px);
+  background-color: rgba(11, 27, 43, 0.5);
+  border-bottom: solid 1px rgba(125, 211, 252, 0.18);
+  color: #E8F1F8;
+}
+
+.topbar-item {
+  margin: 0px;
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 16px;
+}
+
+.topbar-brand {
+  margin: 0px 0px 0px 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #F2B65A;
+  background-color: rgba(242, 182, 90, 0.12);
+  cursor: pointer;
+}
+
+.topbar-status {
+  color: #7DD3FC;
+}
+
+.topbar-clock {
+  margin: 0px 14px 0px 0px;
+  font-variant-numeric: tabular-nums;
+  background-color: rgba(125, 211, 252, 0.12);
+}
+
+/* ============================================================
+   desktop icons
+   ============================================================ */
+
+#desktopApps {
+  padding-top: 56px;
+  padding-left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: fit-content;
+}
+
+.appicon {
+  width: 92px;
+  padding: 10px 8px 8px 8px;
+  border-radius: 14px;
+  text-align: center;
+  cursor: pointer;
+  border: solid 1px transparent;
+  user-select: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.appicon:hover {
+  background-color: rgba(125, 211, 252, 0.1);
+}
+
+/* An icon the user has tapped once: lit, as if a lamp came on behind it. */
+.appicon.selected {
+  background-color: rgba(242, 182, 90, 0.18);
+  border-color: rgba(242, 182, 90, 0.55);
+}
+
+.appicon-art {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  filter: drop-shadow(0px 3px 8px rgba(0, 0, 0, 0.65));
+}
+
+.appicon-label {
+  margin: 6px 0px 0px 0px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #E8F1F8;
+  text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.appicon.selected .appicon-label {
+  color: #F2B65A;
+}
+
+/* ============================================================
+   Crate — records I keep coming back to
+   ============================================================ */
+
+.crate-body {
+  width: 380px;
+}
+
+.crate-intro {
+  margin: 0px 0px 14px 0px;
+  font-size: 13px;
+  color: #B6CEDD;
+}
+
+/* The shelf of sleeves. Populated from crateRecords in script.js.
+   auto-fill keeps the columns even no matter how many records you add. */
+.crate-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+  /* room for the sleeve hover-lift, so it doesn't clip or trigger a scrollbar */
+  padding-top: 4px;
+}
+
+.sleeve {
+  cursor: pointer;
+  border-radius: 8px;
+  border: solid 2px transparent;
+  padding: 2px;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.sleeve:hover {
+  transform: translateY(-3px);
+}
+
+.sleeve img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 5px;
+  display: block;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.sleeve.spinning {
+  border-color: #F2B65A;
+}
+
+/* The detail panel for whichever record is selected. */
+.crate-playing {
+  border-top: solid 1px rgba(125, 211, 252, 0.2);
+  padding-top: 16px;
+  display: flex;
+  gap: 14px;
+}
+
+.crate-playing-art {
+  width: 74px;
+  height: 74px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.55);
+}
+
+.crate-nowplaying {
+  margin: 0px;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #F2B65A;
+}
+
+.crate-title {
+  margin: 3px 0px 0px 0px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #E8F1F8;
+}
+
+.crate-meta {
+  margin: 2px 0px 6px 0px;
+  font-size: 12px;
+  color: #7DD3FC;
+}
+
+.crate-note {
+  margin: 0px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #B6CEDD;
+}
+
+/* ============================================================
+   Terminal — the app that can reach the other apps
+   ============================================================ */
+
+.terminal-body {
+  width: 460px;
+  font-family: Consolas, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+}
+
+.terminal-output {
+  height: 250px;
+  overflow-y: auto;
+  padding: 12px;
+  border-radius: 10px;
+  background-color: rgba(7, 19, 32, 0.6);
+  border: solid 1px rgba(125, 211, 252, 0.15);
+  line-height: 1.6;
+  /* long paths and command output shouldn't stretch the window */
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.terminal-line {
+  margin: 0px;
+}
+
+/* the echoed command */
+.terminal-echo {
+  color: #E8F1F8;
+}
+
+.terminal-echo .terminal-prompt {
+  margin-right: 6px;
+}
+
+/* command output */
+.terminal-reply {
+  color: #7DD3FC;
+}
+
+/* errors, and the banner's heading */
+.terminal-error {
+  color: #E8734A;
+}
+
+.terminal-banner {
+  color: #F2B65A;
+  font-weight: 600;
+}
+
+.terminal-dim {
+  color: #6B8CA3;
+}
+
+.terminal-inputline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0px 4px;
+}
+
+.terminal-prompt {
+  color: #F2B65A;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* An <input> inherits nothing by default — strip it back to bare text. */
+.terminal-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0px;
+  color: #E8F1F8;
+  font-family: inherit;
+  font-size: inherit;
+  caret-color: #F2B65A;
+}

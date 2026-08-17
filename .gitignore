@@ -1,0 +1,6 @@
+# Local verification harness — not part of the OS itself.
+.verify/
+node_modules/
+
+# Tutorial source material
+Pasted/

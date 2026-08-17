@@ -1,76 +1,120 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SufiyanOS</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lookout OS</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body>
-  <div id="top">
-    <button id="welcomeopen">SufiyanOS</button>
-    <span>Personal workspace</span>
-    <span id="timeElement">Loading time…</span>
+
+<body
+  style="background-image: url(./lookout.png); background-size: cover; background-position: center; background-repeat: no-repeat; height: 100vh; margin: 0px; overflow: hidden; color: #E8F1F8; font-family: Inter, Segoe UI, Helvetica, sans-serif;">
+
+  <!-- ─────────────── the welcome window ─────────────── -->
+  <!-- Position and size stay in-line, since they're this window's own business.
+       Everything else now comes from the .window class. -->
+  <div class="window" id="welcome" style="top: calc(50% - 210px); left: calc(50% - 210px); width: 420px;">
+
+    <div class="windowheader" id="welcomeheader">
+      <div class="closebutton" id="welcomeclose"></div>
+      <p class="headertext">Welcome</p>
+      <div class="headerspacer"></div>
+    </div>
+
+    <div class="windowbody">
+      <h1 class="title">Lookout OS</h1>
+
+      <h2 class="subtitle">
+        A personal <abbr title="Operating System">OS</abbr>, built in the open
+      </h2>
+
+      <img class="postcard" src="./lookout.png" alt="A fire lookout tower above a dusk pine forest">
+
+      <p class="body-text">
+        Hey &mdash; I'm <strong class="accent">Sufiyan</strong>, and you've just booted my corner of the internet.
+        <br>
+        A <dfn class="term">lookout</dfn> is a tower you climb to watch the horizon and signal what you see.
+        That's the idea here: not
+        <s class="strike">another scrolling portfolio</s>
+        <ins class="replaced">a desktop you can poke at</ins>.
+      </p>
+
+      <p class="muted">
+        Everything on this machine is something I made, listened to, or figured out the hard way.
+        Drag this window by its header, close it with the dot, and click
+        <strong class="accent">Lookout</strong> up top to get it back.
+      </p>
+
+      <a class="pill pill-solid" href="https://github.com/Yourfiyan">GitHub</a>
+      <a class="pill pill-ghost" href="https://www.instagram.com/yourfiyan">Instagram</a>
+    </div>
   </div>
 
-  <main id="desktopApps" aria-label="Applications">
-    <button class="app-icon" id="aboutIcon"><span class="app-glyph">◉</span><span>About</span></button>
-    <button class="app-icon" id="labIcon"><span class="app-glyph">⌘</span><span>Lab</span></button>
-    <button class="app-icon" id="notesIcon"><span class="app-glyph">✎</span><span>Notes</span></button>
-    <button class="app-icon" id="linksIcon"><span class="app-glyph">↗</span><span>Links</span></button>
-  </main>
+  <!-- ─────────────── the top bar ─────────────── -->
+  <div id="top">
+    <p class="topbar-item topbar-brand" id="welcomeopen">Lookout</p>
+    <p class="topbar-item topbar-status" id="topbarStatus">still climbing</p>
+    <p class="topbar-item topbar-clock" id="clock">&mdash;</p>
+  </div>
 
-  <section class="window" id="welcome" style="top: 50%; left: 50%;">
-    <div class="windowheader" id="welcomeheader"><button class="closebutton" id="welcomeclose">×</button><p class="headertext">Welcome</p><span></span></div>
-    <div class="windowbody hero">
-      <div>
-        <span class="eyebrow">PERSONAL OPERATING SYSTEM</span>
-        <h1>Welcome to SufiyanOS.</h1>
-        <p class="muted">A small web desktop for exploring ideas, projects, notes, and experiments.</p>
-        <div class="hero-actions">
-          <button class="primary" id="openLab">Open Lab</button>
-          <button class="secondary" id="openAbout">About me</button>
-        </div>
+  <!-- ─────────────── the desktop ─────────────── -->
+  <!-- One tap selects an icon, a second tap (or a double-click) opens it. -->
+  <div id="desktopApps">
+    <div class="appicon" id="crateIcon">
+      <img class="appicon-art" src="./crate.svg" alt="">
+      <p class="appicon-label">Crate</p>
+    </div>
+
+    <div class="appicon" id="terminalIcon">
+      <img class="appicon-art" src="./terminal.svg" alt="">
+      <p class="appicon-label">Terminal</p>
+    </div>
+  </div>
+
+  <!-- ─────────────── Crate ─────────────── -->
+  <div class="window" id="crate" style="top: calc(50% - 250px); left: calc(50% + 40px); display: none;">
+
+    <div class="windowheader" id="crateheader">
+      <div class="closebutton" id="crateclose"></div>
+      <p class="headertext">Crate</p>
+      <div class="headerspacer"></div>
+    </div>
+
+    <div class="windowbody crate-body">
+      <p class="crate-intro">
+        Records I keep coming back to. Pick a sleeve.
+      </p>
+
+      <!-- Both of these are filled in by script.js from the crateRecords array. -->
+      <div id="crateShelf" class="crate-shelf"></div>
+      <div id="cratePlaying" class="crate-playing"></div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Terminal ─────────────── -->
+  <div class="window" id="terminal" style="top: calc(50% - 40px); left: 40px; display: none;">
+
+    <div class="windowheader" id="terminalheader">
+      <div class="closebutton" id="terminalclose"></div>
+      <p class="headertext">Terminal</p>
+      <div class="headerspacer"></div>
+    </div>
+
+    <div class="windowbody terminal-body">
+      <!-- Scrollback. Every line is appended by script.js. -->
+      <div id="terminalOutput" class="terminal-output"></div>
+
+      <div class="terminal-inputline">
+        <span class="terminal-prompt">guest@lookout:~$</span>
+        <input id="terminalInput" class="terminal-input" type="text" autocomplete="off" spellcheck="false"
+          aria-label="Terminal command input">
       </div>
-      <div class="hero-orb" aria-hidden="true">S</div>
     </div>
-  </section>
+  </div>
 
-  <section class="window" id="about" style="top: 50%; left: 50%; display:none;">
-    <div class="windowheader" id="aboutheader"><button class="closebutton" id="aboutclose">×</button><p class="headertext">About</p><span></span></div>
-    <div class="windowbody">
-      <span class="eyebrow">PROFILE</span>
-      <h2>Curious by default.</h2>
-      <p class="muted">This desktop is a playground for technology, software, design, AI, gaming, and the web.</p>
-      <div class="stat-grid"><div><b>01</b>Build</div><div><b>02</b>Explore</div><div><b>03</b>Learn</div></div>
-    </div>
-  </section>
+  <script src="script.js"></script>
 
-  <section class="window" id="lab" style="top: 50%; left: 50%; display:none;">
-    <div class="windowheader" id="labheader"><button class="closebutton" id="labclose">×</button><p class="headertext">Lab</p><span></span></div>
-    <div class="projects-layout">
-      <aside id="projectSidebar" class="project-sidebar"></aside>
-      <article id="projectContent" class="project-content"></article>
-    </div>
-  </section>
-
-  <section class="window" id="notes" style="top: 50%; left: 50%; display:none;">
-    <div class="windowheader" id="notesheader"><button class="closebutton" id="notesclose">×</button><p class="headertext">Notes</p><span></span></div>
-    <div class="notes-layout">
-      <nav id="notesSidebar" class="notes-sidebar"></nav>
-      <article id="notesContent" class="notes-content"></article>
-    </div>
-  </section>
-
-  <section class="window" id="links" style="top: 50%; left: 50%; display:none;">
-    <div class="windowheader" id="linksheader"><button class="closebutton" id="linksclose">×</button><p class="headertext">Links</p><span></span></div>
-    <div class="windowbody links-page">
-      <a href="https://github.com/Yourfiyan" target="_blank" rel="noreferrer">GitHub <span>↗</span></a>
-      <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn <span>↗</span></a>
-      <a href="https://open.spotify.com/" target="_blank" rel="noreferrer">Spotify <span>↗</span></a>
-    </div>
-  </section>
-
-  <script src="./script.js"></script>
 </body>
+
 </html>

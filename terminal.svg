@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img"
+  aria-label="A terminal window showing a command prompt">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#153048" />
+      <stop offset="1" stop-color="#071320" />
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="8" width="56" height="48" rx="8" fill="url(#panel)" />
+  <rect x="4" y="8" width="56" height="48" rx="8" fill="none" stroke="#7DD3FC" stroke-opacity="0.35" />
+
+  <!-- title strip with the window's own ember dot -->
+  <path d="M4 16a8 8 0 0 1 8-8h40a8 8 0 0 1 8 8v2H4Z" fill="#7DD3FC" fill-opacity="0.12" />
+  <circle cx="12" cy="13" r="2.4" fill="#E8734A" />
+
+  <!-- the prompt -->
+  <path d="M13 27 l5 4 -5 4" fill="none" stroke="#F2B65A" stroke-width="2.6" stroke-linecap="round"
+    stroke-linejoin="round" />
+  <rect x="23" y="29" width="17" height="3" rx="1.5" fill="#E8F1F8" fill-opacity="0.85" />
+  <rect x="13" y="39" width="26" height="3" rx="1.5" fill="#7DD3FC" fill-opacity="0.65" />
+  <rect x="13" y="47" width="14" height="3" rx="1.5" fill="#7DD3FC" fill-opacity="0.35" />
+  <rect x="31" y="47" width="4" height="3" rx="1.5" fill="#F2B65A" />
+</svg>
