@@ -1,8 +1,24 @@
+:root {
+  --theme-color: var(--theme-color, #F2B65A);
+}
+
 /* ============================================================
    Lookout OS — style.css
    Windows have a lot in common, so their looks live here once
    and every window reuses them.
    ============================================================ */
+
+/* ---------- custom properties (theme / night / brightness) ---------- */
+
+:root {
+  --theme-color: var(--theme-color, #F2B65A);
+  --os-brightness: 1;
+  --os-night: 0;
+}
+
+body.night {
+  --os-night: 1;
+}
 
 /* ---------- window shell ---------- */
 
@@ -28,6 +44,7 @@ abbr[title] {
 }
 
 /* ---------- the drag handle ---------- */
+/*  */
 
 .windowheader {
   display: flex;
@@ -73,7 +90,7 @@ abbr[title] {
 }
 
 .closebutton:hover {
-  background-color: #F2B65A;
+  background-color: var(--theme-color, #F2B65A);
 }
 
 /* ---------- window content ---------- */
@@ -110,7 +127,7 @@ abbr[title] {
   font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.5px;
-  color: #F2B65A;
+  color: var(--theme-color, #F2B65A);
 }
 
 .subtitle {
@@ -154,7 +171,7 @@ abbr[title] {
 
 .pill-solid {
   color: #0B1B2B;
-  background-color: #F2B65A;
+  background-color: var(--theme-color, #F2B65A);
 }
 
 .pill-ghost {
@@ -168,7 +185,7 @@ abbr[title] {
 }
 
 .accent {
-  color: #F2B65A;
+  color: var(--theme-color, #F2B65A);
 }
 
 .strike {
@@ -177,50 +194,281 @@ abbr[title] {
 
 .replaced {
   text-decoration: none;
-  border-bottom: solid 2px #F2B65A;
+  border-bottom: solid 2px var(--theme-color, #F2B65A);
 }
 
-/* ---------- top bar ---------- */
+/* ---------- system bar ---------- */
 
 #top {
   position: absolute;
   top: 0px;
   left: 0px;
   width: 100%;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 0px;
-  backdrop-filter: blur(14px);
-  background-color: rgba(11, 27, 43, 0.5);
-  border-bottom: solid 1px rgba(125, 211, 252, 0.18);
+  padding: 0px 14px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  background-color: rgba(11, 27, 43, 0.55);
+  border-bottom: solid 1px rgba(125, 211, 252, 0.14);
+  color: #E8F1F8;
+  z-index: 9999;
+  user-select: none;
+}
+
+.sys-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.sys-horizon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--theme-color, #F2B65A);
+  box-shadow: 0 0 6px rgba(242, 182, 90, 0.5);
+  flex-shrink: 0;
+}
+
+.sys-status {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  color: rgba(232, 241, 248, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sys-clock {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  color: rgba(232, 241, 248, 0.9);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sys-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.sys-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgba(125, 211, 252, 0.5);
+  flex-shrink: 0;
+}
+
+#controlToggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 12px;
+  background-color: rgba(125, 211, 252, 0.1);
+  border: solid 1px rgba(125, 211, 252, 0.2);
+  color: #7DD3FC;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+  user-select: none;
+}
+
+#controlToggle:hover {
+  background-color: rgba(125, 211, 252, 0.22);
+  border-color: rgba(125, 211, 252, 0.4);
+}
+
+#controlToggle svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---------- Control Center panel ---------- */
+
+#controlCenter {
+  position: fixed;
+  top: 42px;
+  right: 12px;
+  width: 280px;
+  padding: 14px;
+  border-radius: 18px;
+  border: solid 1px rgba(125, 211, 252, 0.2);
+  background-color: rgba(11, 27, 43, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0px 12px 40px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: none;
   color: #E8F1F8;
 }
 
-.topbar-item {
-  margin: 0px;
-  font-size: 13px;
-  padding: 4px 12px;
-  border-radius: 16px;
+.cc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0px;
+  border-bottom: solid 1px rgba(125, 211, 252, 0.1);
 }
 
-.topbar-brand {
-  margin: 0px 0px 0px 14px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: #F2B65A;
-  background-color: rgba(242, 182, 90, 0.12);
+.cc-row:last-child {
+  border-bottom: none;
+}
+
+.cc-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(232, 241, 248, 0.8);
+  letter-spacing: 0.2px;
+}
+
+.cc-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(125, 211, 252, 0.2);
+  outline: none;
   cursor: pointer;
 }
 
-.topbar-status {
-  color: #7DD3FC;
+.cc-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--theme-color, #F2B65A);
+  cursor: pointer;
+  border: solid 2px rgba(11, 27, 43, 0.8);
 }
 
-.topbar-clock {
-  margin: 0px 14px 0px 0px;
-  font-variant-numeric: tabular-nums;
-  background-color: rgba(125, 211, 252, 0.12);
+.cc-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--theme-color, #F2B65A);
+  cursor: pointer;
+  border: solid 2px rgba(11, 27, 43, 0.8);
+}
+
+.cc-toggle {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 10px;
+  border: solid 1px rgba(125, 211, 252, 0.25);
+  background-color: rgba(125, 211, 252, 0.08);
+  color: #7DD3FC;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+  min-width: 44px;
+  text-align: center;
+}
+
+.cc-toggle.on {
+  background-color: rgba(242, 182, 90, 0.2);
+  border-color: rgba(242, 182, 90, 0.5);
+  color: var(--theme-color, #F2B65A);
+}
+
+.cc-themes {
+  display: flex;
+  gap: 6px;
+}
+
+.cc-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: solid 2px transparent;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.cc-swatch:hover {
+  transform: scale(1.15);
+}
+
+.cc-swatch.active {
+  border-color: rgba(232, 241, 248, 0.9);
+}
+
+.cc-status {
+  font-size: 10px;
+  color: rgba(125, 211, 252, 0.6);
+  padding: 8px 0px 2px 0px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ---------- brightness overlay ---------- */
+
+#brightnessOverlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background-color: rgba(0, 0, 0, 0);
+  transition: background-color 200ms ease;
+}
+
+/* ---------- night mode ---------- */
+
+body.night {
+  color-scheme: dark;
+}
+
+body.night .window {
+  background-color: rgba(6, 16, 28, 0.82);
+  border-color: rgba(125, 211, 252, 0.12);
+}
+
+body.night .windowbody {
+  color: #C8D8E4;
+}
+
+body.night .headertext {
+  color: #5BA4C8;
+}
+
+body.night .title {
+  color: #D4A24C;
+}
+
+body.night .subtitle {
+  color: #5BA4C8;
+}
+
+body.night .muted {
+  color: #8AA8BA;
+}
+
+body.night .appicon-label {
+  color: #C8D8E4;
+}
+
+body.night .pill-ghost {
+  color: #5BA4C8;
+  background-color: rgba(91, 164, 200, 0.12);
+}
+
+body.night .body-text {
+  color: #C8D8E4;
 }
 
 /* ============================================================
@@ -228,7 +476,7 @@ abbr[title] {
    ============================================================ */
 
 #desktopApps {
-  padding-top: 56px;
+  padding-top: 44px;
   padding-left: 12px;
   display: flex;
   flex-direction: column;
@@ -273,7 +521,7 @@ abbr[title] {
 }
 
 .appicon.selected .appicon-label {
-  color: #F2B65A;
+  color: var(--theme-color, #F2B65A);
 }
 
 /* ============================================================
@@ -323,7 +571,7 @@ abbr[title] {
 }
 
 .sleeve.spinning {
-  border-color: #F2B65A;
+  border-color: var(--theme-color, #F2B65A);
 }
 
 /* The detail panel for whichever record is selected. */
@@ -348,7 +596,7 @@ abbr[title] {
   font-size: 10px;
   letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: #F2B65A;
+  color: var(--theme-color, #F2B65A);
 }
 
 .crate-title {
@@ -418,7 +666,7 @@ abbr[title] {
 }
 
 .terminal-banner {
-  color: #F2B65A;
+  color: var(--theme-color, #F2B65A);
   font-weight: 600;
 }
 
@@ -435,7 +683,7 @@ abbr[title] {
 }
 
 .terminal-prompt {
-  color: #F2B65A;
+  color: var(--theme-color, #F2B65A);
   white-space: nowrap;
   user-select: none;
 }
@@ -450,5 +698,5 @@ abbr[title] {
   color: #E8F1F8;
   font-family: inherit;
   font-size: inherit;
-  caret-color: #F2B65A;
+  caret-color: var(--theme-color, #F2B65A);
 }

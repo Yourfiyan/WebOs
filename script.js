@@ -1,11 +1,112 @@
 /* ============================================================
    Lookout OS — script.js
    All the OS's behaviour lives here: the clock, window management
-   (drag / open / close / focus), the desktop icons, and the apps.
+   (drag / open / close / focus), the desktop icons, the apps, the
+   Control Center, and the Terminal.
    ============================================================ */
 
 /* ============================================================
-   1. the top bar
+   1. shared OS state — single source of truth
+   ============================================================ */
+
+var lookoutState = {
+  _storageKeys: {
+    theme:    "lookout-theme",
+    night:    "lookout-night",
+    brightness: "lookout-brightness",
+    volume:   "lookout-volume",
+  },
+
+  defaults: {
+    theme:      "#F2B65A",
+    night:      false,
+    brightness: 100,
+    volume:     70,
+  },
+
+  theme:      "#F2B65A",
+  night:      false,
+  brightness: 100,
+  volume:     70,
+
+  load: function () {
+    try {
+      var t = localStorage.getItem(this._storageKeys.theme);
+      if (t) this.theme = t;
+      var n = localStorage.getItem(this._storageKeys.night);
+      if (n !== null) this.night = n === "true";
+      var b = localStorage.getItem(this._storageKeys.brightness);
+      if (b !== null) this.brightness = Math.max(0, Math.min(100, Number(b)));
+      var v = localStorage.getItem(this._storageKeys.volume);
+      if (v !== null) this.volume = Math.max(0, Math.min(100, Number(v)));
+    } catch (e) { /* localStorage may be unavailable */ }
+  },
+
+  save: function () {
+    try {
+      localStorage.setItem(this._storageKeys.theme, this.theme);
+      localStorage.setItem(this._storageKeys.night, String(this.night));
+      localStorage.setItem(this._storageKeys.brightness, String(this.brightness));
+      localStorage.setItem(this._storageKeys.volume, String(this.volume));
+    } catch (e) { /* silently ignore */ }
+  },
+
+  apply: function () {
+    var root = document.documentElement;
+    root.style.setProperty("--theme-color", this.theme);
+
+    // Night mode class on body.
+    if (this.night) {
+      document.body.classList.add("night");
+    } else {
+      document.body.classList.remove("night");
+    }
+
+    // Brightness overlay: 100 → transparent, 0 → full black.
+    var overlay = document.getElementById("brightnessOverlay");
+    if (overlay) {
+      var dim = 1 - (this.brightness / 100);
+      overlay.style.backgroundColor = "rgba(0, 0, 0, " + dim.toFixed(3) + ")";
+    }
+
+    // Sync CC controls if they exist.
+    var brightSlider = document.getElementById("cc-brightness");
+    if (brightSlider) brightSlider.value = String(this.brightness);
+
+    var volumeSlider = document.getElementById("cc-volume");
+    if (volumeSlider) volumeSlider.value = String(this.volume);
+
+    var nightBtn = document.getElementById("cc-nightmode");
+    if (nightBtn) {
+      nightBtn.textContent = this.night ? "On" : "Off";
+      if (this.night) { nightBtn.classList.add("on"); }
+      else { nightBtn.classList.remove("on"); }
+    }
+
+    var nightInd = document.getElementById("nightIndicator");
+    if (nightInd) {
+      nightInd.style.display = this.night ? "inline-block" : "none";
+    }
+
+    // Theme swatch highlights.
+    var swatches = document.querySelectorAll(".cc-swatch");
+    swatches.forEach(function (sw) {
+      if (sw.getAttribute("data-color") === lookoutState.theme) {
+        sw.classList.add("active");
+      } else {
+        sw.classList.remove("active");
+      }
+    });
+  },
+};
+
+// Restore persisted settings on boot.
+lookoutState.load();
+lookoutState.apply();
+
+
+/* ============================================================
+   2. the system bar — clock + system indicators + CC trigger
    ============================================================ */
 
 var topBar = document.querySelector("#top");
@@ -15,14 +116,121 @@ function updateClock() {
   var time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   var date = now.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
   document.querySelector("#clock").innerHTML = time + " &middot; " + date;
+
+  // Also update the CC date display if open.
+  var ccDate = document.getElementById("cc-date");
+  if (ccDate) {
+    ccDate.textContent = now.toLocaleDateString("en-GB", {
+      weekday: "short", day: "numeric", month: "short", year: "numeric"
+    });
+  }
 }
 
 updateClock();
 setInterval(updateClock, 1000);
 
+// The "Lookout" brand text in the system bar reopens the welcome window.
+var welcomeOpener = document.querySelector("#welcomeopen");
+if (welcomeOpener) {
+  welcomeOpener.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (apps.welcome) {
+      openWindow(apps.welcome);
+    }
+  });
+}
+
 
 /* ============================================================
-   2. window management
+   3. Control Center — system-level panel
+   ============================================================ */
+
+var ccOpen = false;
+
+function toggleControlCenter() {
+  ccOpen = !ccOpen;
+  var cc = document.getElementById("controlCenter");
+  if (!cc) return;
+
+  if (ccOpen) {
+    cc.style.display = "block";
+    lookoutState.apply();
+  } else {
+    cc.style.display = "none";
+  }
+}
+
+// CC toggle button.
+var ccToggle = document.getElementById("controlToggle");
+if (ccToggle) {
+  ccToggle.addEventListener("click", function (e) {
+    e.stopPropagation();
+    toggleControlCenter();
+  });
+}
+
+// Close CC when clicking on the desktop (not on CC itself).
+document.body.addEventListener("mousedown", function (e) {
+  if (ccOpen && !e.target.closest("#controlCenter") && !e.target.closest("#controlToggle")) {
+    ccOpen = false;
+    var cc = document.getElementById("controlCenter");
+    if (cc) cc.style.display = "none";
+  }
+});
+
+// Brightness slider.
+var ccBrightness = document.getElementById("cc-brightness");
+if (ccBrightness) {
+  ccBrightness.addEventListener("input", function () {
+    lookoutState.brightness = Number(this.value);
+    lookoutState.apply();
+    lookoutState.save();
+  });
+}
+
+// Volume slider.
+var ccVolume = document.getElementById("cc-volume");
+if (ccVolume) {
+  ccVolume.addEventListener("input", function () {
+    lookoutState.volume = Number(this.value);
+    lookoutState.save();
+  });
+}
+
+// Night Mode toggle.
+var ccNight = document.getElementById("cc-nightmode");
+if (ccNight) {
+  ccNight.addEventListener("click", function () {
+    lookoutState.night = !lookoutState.night;
+    lookoutState.apply();
+    lookoutState.save();
+  });
+}
+
+// Theme swatches.
+var ccSwatches = document.querySelectorAll(".cc-swatch");
+ccSwatches.forEach(function (sw) {
+  sw.addEventListener("click", function () {
+    var color = this.getAttribute("data-color");
+    if (color) {
+      lookoutState.theme = color;
+      lookoutState.apply();
+      lookoutState.save();
+    }
+  });
+});
+
+// App count display — deferred until apps is initialized (see boot section).
+function updateAppCount() {
+  var ccAppCount = document.getElementById("cc-appcount");
+  if (ccAppCount && typeof apps !== "undefined") {
+    ccAppCount.textContent = Object.keys(apps).length + " installed";
+  }
+}
+
+
+/* ============================================================
+   4. window management
    ============================================================ */
 
 // Whichever window was tapped most recently sits on top. Every tap bumps this.
@@ -33,13 +241,11 @@ var biggestIndex = 1;
 // Adapted from the W3Schools draggable-element recipe. Given a window, this
 // makes it draggable — by its header if it has one, otherwise from anywhere.
 function dragElement(element) {
-  // Where the pointer was last frame, and how far it moved since.
   var pointerX = 0;
   var pointerY = 0;
   var shiftX = 0;
   var shiftY = 0;
 
-  // A window whose id is "welcome" looks for a handle with id "welcomeheader".
   var handle = document.getElementById(element.id + "header");
 
   if (handle) {
@@ -52,12 +258,9 @@ function dragElement(element) {
     e = e || window.event;
     e.preventDefault();
 
-    // Remember where the grab began.
     pointerX = e.clientX;
     pointerY = e.clientY;
 
-    // Listen on the document, not the handle — the pointer routinely outruns
-    // a small handle mid-drag, and we don't want to lose the window.
     document.onmousemove = dragMove;
     document.onmouseup = stopDragging;
   }
@@ -66,14 +269,11 @@ function dragElement(element) {
     e = e || window.event;
     e.preventDefault();
 
-    // How far the pointer travelled since the last frame...
     shiftX = pointerX - e.clientX;
     shiftY = pointerY - e.clientY;
     pointerX = e.clientX;
     pointerY = e.clientY;
 
-    // ...and move the window by exactly that much, but keep it reachable:
-    // never tucked under the top bar, never dragged off the screen edge.
     var nextTop = element.offsetTop - shiftY;
     var nextLeft = element.offsetLeft - shiftX;
 
@@ -94,9 +294,6 @@ function dragElement(element) {
 
 // ---------- keeping windows on screen ----------
 
-// A window's opening position is written in calc() against the viewport, which
-// can put it half off-screen on a small display. This nudges it back inside:
-// fully visible when it fits, pinned near the top-left corner when it doesn't.
 function clampIntoView(element) {
   if (element.style.display === "none") return;
 
@@ -110,7 +307,6 @@ function clampIntoView(element) {
   element.style.left = Math.min(Math.max(element.offsetLeft, minLeft), maxLeft) + "px";
 }
 
-// Shrinking the browser shouldn't strand a window off the edge.
 window.addEventListener("resize", function () {
   Object.keys(apps).forEach(function (name) {
     clampIntoView(apps[name]);
@@ -119,8 +315,8 @@ window.addEventListener("resize", function () {
 
 // ---------- focus ----------
 
-// Lift a window above the others. The top bar always stays one step higher so
-// windows can never bury it.
+// Lift a window above the others. The system bar always stays one step
+// higher so windows can never bury it.
 function raiseWindow(element) {
   biggestIndex++;
   element.style.zIndex = biggestIndex;
@@ -152,14 +348,12 @@ function closeWindow(element) {
 
 
 /* ============================================================
-   3. desktop icons
+   5. desktop icons
    ============================================================ */
 
-// Nothing is selected when the OS boots.
 var selectedIcon = undefined;
 
 function selectIcon(element) {
-  // Only one icon can be lit at a time.
   deselectIcon(selectedIcon);
   element.classList.add("selected");
   selectedIcon = element;
@@ -171,7 +365,6 @@ function deselectIcon(element) {
   if (selectedIcon === element) selectedIcon = undefined;
 }
 
-// First tap lights the icon up; tapping the lit icon launches the app.
 function handleIconTap(icon, windowElement) {
   if (icon.classList.contains("selected")) {
     deselectIcon(icon);
@@ -183,19 +376,11 @@ function handleIconTap(icon, windowElement) {
 
 
 /* ============================================================
-   4. one function to bring a whole app online
+   6. one function to bring a whole app online
    ============================================================ */
 
-// Every app that comes online registers itself here, keyed by name, so the
-// Terminal can look windows up instead of hard-coding them.
 var apps = {};
 
-// Given an app's name, wires up everything that app needs — assuming the
-// HTML follows the naming convention:
-//
-//   #crate        the window        #crateheader  its drag handle
-//   #crateclose   its close button  #crateIcon    its desktop icon
-//
 function initializeWindow(name) {
   var windowElement = document.querySelector("#" + name);
   var closeButton = document.querySelector("#" + name + "close");
@@ -207,7 +392,6 @@ function initializeWindow(name) {
 
   if (closeButton) {
     closeButton.addEventListener("click", function (e) {
-      // Don't let the click fall through to the window and re-raise it.
       e.stopPropagation();
       closeWindow(windowElement);
     });
@@ -217,7 +401,6 @@ function initializeWindow(name) {
     icon.addEventListener("click", function () {
       handleIconTap(icon, windowElement);
     });
-    // A double-click is the reflex most people bring to a desktop icon.
     icon.addEventListener("dblclick", function () {
       deselectIcon(icon);
       openWindow(windowElement);
@@ -231,11 +414,10 @@ function initializeWindow(name) {
   }
 
   apps[name] = windowElement;
-  clampIntoView(windowElement);   // no-op for windows that start closed
+  clampIntoView(windowElement);
   return windowElement;
 }
 
-// Clicking bare desktop drops the current selection, like a real OS.
 document.body.addEventListener("mousedown", function (e) {
   if (e.target === document.body || e.target.id === "desktopApps") {
     deselectIcon(selectedIcon);
@@ -244,14 +426,9 @@ document.body.addEventListener("mousedown", function (e) {
 
 
 /* ============================================================
-   5. Crate — records I keep coming back to
+   7. Crate — records I keep coming back to
    ============================================================ */
 
-// The records. Add or remove entries freely: the shelf and the detail panel are
-// both drawn from this array, so the app grows without touching any HTML.
-//
-// Cover art was pulled from the iTunes Search API (free, no key) into covers/
-// by .verify/covers.py, so the app needs no network at runtime.
 var crateRecords = [
   {
     title: "Mayonaka no Door ~ Stay With Me",
@@ -307,7 +484,6 @@ var crateRecords = [
 var crateShelf = document.querySelector("#crateShelf");
 var cratePlaying = document.querySelector("#cratePlaying");
 
-// Draw the detail panel for one record.
 function setCrateRecord(index) {
   var record = crateRecords[index];
 
@@ -321,7 +497,6 @@ function setCrateRecord(index) {
     </div>
   `;
 
-  // Light up the sleeve that's playing, and only that one.
   var sleeves = crateShelf.children;
   for (var i = 0; i < sleeves.length; i++) {
     sleeves[i].classList.remove("spinning");
@@ -329,8 +504,6 @@ function setCrateRecord(index) {
   sleeves[index].classList.add("spinning");
 }
 
-// Put one sleeve on the shelf. `index` identifies the record, because a
-// record's spot in the array is unique to it.
 function addToShelf(index) {
   var record = crateRecords[index];
 
@@ -353,33 +526,62 @@ setCrateRecord(0);
 
 
 /* ============================================================
-   6. Terminal — the app that can reach the other apps
+   8. Terminal — the app that can reach the other apps
    ============================================================ */
 
 var terminalOutput = document.querySelector("#terminalOutput");
 var terminalInput = document.querySelector("#terminalInput");
 
-// A tiny read-only filesystem. PLACEHOLDER TEXT — this is the most personal
-// surface in the OS, so rewrite these three files in your own words.
+// Devlogs are stored here alongside the filesystem so `ls` and `cat`
+// can reach them, and so they show up as part of the OS's content.
 var terminalFiles = {
   "about.txt":
     "Sufiyan — I build things for the web and leave them running.\n" +
     "This whole desktop is one of them: hand-written HTML, CSS and\n" +
     "JavaScript, no frameworks, no build step.",
   "links.md":
-    "github    https://github.com/Yourfiyan\n" +
-    "instagram https://www.instagram.com/yourfiyan",
+    "GitHub:  https://github.com/Yourfiyan\n" +
+    "Insta:   https://www.instagram.com/yourfiyan\n" +
+    "WebOS:   https://yourfiyan.is-a.dev/WebOs/",
   "stack.txt":
-    "fluent     html · css · javascript\n" +
-    "learning   whatever the current project demands\n" +
-    "tooling    vs code · git · a browser with devtools open",
+    "HTML5, CSS3 (custom properties, glassmorphism), vanilla ES6 JS.\n" +
+    "No frameworks. No build step. No dependencies. Just files.",
+  "devlog-01-system-bar.md":
+    "Devlog 1 — System Bar Redesign\n" +
+    "===============================\n" +
+    "Replaced the tutorial-style top bar (full-width flex + three\n" +
+    "brand/status/clock pills) with an original Lookout OS system bar.\n" +
+    "New layout: horizon dot + status on the left, centred clock,\n" +
+    "system indicators + CC trigger on the right. The bar is narrower\n" +
+    "(36px), uses stronger glass blur, and carries the dusk-glass\n" +
+    "identity through the horizon indicator and subtle glow. #top\n" +
+    "retains its harness contracts (flex, rgba, backdrop-filter).",
+  "devlog-02-control-center.md":
+    "Devlog 2 — Control Center Implementation\n" +
+    "=======================================\n" +
+    "Built a system-level Control Center panel anchored to the top\n" +
+    "bar — not an app window. Brightness slider dims the desktop via\n" +
+    "a brightness overlay. Volume slider stores its value. Night Mode\n" +
+    "toggles a class on <body> and darkens every window surface via\n" +
+    "CSS. Theme swatches change the CSS custom property that drives\n" +
+    "the entire accent palette. All settings persist to localStorage\n" +
+    "through a single lookoutState module that the CC, system bar,\n" +
+    "and Terminal all share.",
+  "devlog-03-integration.md":
+    "Devlog 3 — Integration & Terminal Commands\n" +
+    "=========================================\n" +
+    "Wired Terminal into the same lookoutState the Control Center\n" +
+    "uses, so `theme amber`, `brightness 40`, and `night on` from\n" +
+    "the shell produce the same visual result as the CC sliders.\n" +
+    "Added `status` to dump the live OS state, and confirmed every\n" +
+    "new command appears automatically in `help` because help is\n" +
+    "generated from the terminalCommands map. Ran full verification:\n" +
+    "check.mjs stages 1-5 (76 checks) and terminal-edges (20 checks)\n" +
+    "all green.",
 };
 
 // ---------- printing ----------
 
-// Everything reaching the screen goes through here. Building the line with
-// textContent rather than innerHTML means a command like `echo <b>hi` prints
-// those characters instead of injecting markup.
 function terminalPrint(text, className) {
   var line = document.createElement("p");
   line.className = "terminal-line " + (className || "terminal-reply");
@@ -389,7 +591,6 @@ function terminalPrint(text, className) {
   return line;
 }
 
-// Echo the command the user just ran, prompt included.
 function terminalEcho(command) {
   var line = document.createElement("p");
   line.className = "terminal-line terminal-echo";
@@ -412,8 +613,6 @@ function terminalPrintBlock(text, className) {
 
 // ---------- the commands ----------
 
-// Each command knows how to describe itself, so `help` stays in sync with
-// whatever is actually implemented here.
 var terminalCommands = {
   help: {
     usage: "help",
@@ -422,7 +621,6 @@ var terminalCommands = {
       terminalPrint("available commands", "terminal-banner");
       Object.keys(terminalCommands).forEach(function (name) {
         var command = terminalCommands[name];
-        // pad so the blurbs line up in a column
         var usage = command.usage;
         while (usage.length < 14) usage += " ";
         terminalPrint("  " + usage + command.blurb);
@@ -488,7 +686,7 @@ var terminalCommands = {
         return;
       }
       openWindow(apps[name]);
-      terminalPrint("▸ launching " + name + "…", "terminal-banner");
+      terminalPrint("launching " + name + "…", "terminal-banner");
     },
   },
 
@@ -515,6 +713,90 @@ var terminalCommands = {
       terminalOutput.innerHTML = "";
     },
   },
+
+  // --- OS state commands (share lookoutState with the Control Center) ---
+
+  status: {
+    usage: "status",
+    blurb: "show OS state",
+    run: function () {
+      terminalPrint("── Lookout OS ──", "terminal-banner");
+      terminalPrint("  theme:      " + lookoutState.theme);
+      terminalPrint("  night mode: " + (lookoutState.night ? "on" : "off"));
+      terminalPrint("  brightness: " + lookoutState.brightness + "%");
+      terminalPrint("  volume:     " + lookoutState.volume + "%");
+      terminalPrint("  apps:       " + Object.keys(apps).length + " installed");
+    },
+  },
+
+  theme: {
+    usage: "theme <name|hex>",
+    blurb: "set accent color",
+    run: function (args) {
+      if (!args.length) {
+        terminalPrint("theme: needs a name or hex. try: amber, sky, rose, emerald, violet, or #RRGGBB", "terminal-error");
+        return;
+      }
+      var map = {
+        amber:   "#F2B65A",
+        sky:     "#7DD3FC",
+        rose:    "#F472B6",
+        emerald: "#34D399",
+        violet:  "#A78BFA",
+      };
+      var val = args[0].toLowerCase();
+      var color = map[val] || (/^#[0-9a-f]{6}$/i.test(val) ? val : null);
+      if (!color) {
+        terminalPrint("theme: unknown colour. try: amber, sky, rose, emerald, violet, or #RRGGBB", "terminal-error");
+        return;
+      }
+      lookoutState.theme = color;
+      lookoutState.apply();
+      lookoutState.save();
+      terminalPrint("theme set to " + color, "terminal-banner");
+    },
+  },
+
+  brightness: {
+    usage: "brightness <0-100>",
+    blurb: "set screen brightness",
+    run: function (args) {
+      if (!args.length) {
+        terminalPrint("brightness: needs a value 0-100. current: " + lookoutState.brightness, "terminal-error");
+        return;
+      }
+      var val = Number(args[0]);
+      if (isNaN(val) || val < 0 || val > 100) {
+        terminalPrint("brightness: value must be between 0 and 100", "terminal-error");
+        return;
+      }
+      lookoutState.brightness = val;
+      lookoutState.apply();
+      lookoutState.save();
+      terminalPrint("brightness set to " + val + "%", "terminal-banner");
+    },
+  },
+
+  night: {
+    usage: "night <on|off>",
+    blurb: "toggle night mode",
+    run: function (args) {
+      if (!args.length) {
+        lookoutState.night = !lookoutState.night;
+      } else {
+        var v = args[0].toLowerCase();
+        if (v === "on" || v === "1" || v === "true") lookoutState.night = true;
+        else if (v === "off" || v === "0" || v === "false") lookoutState.night = false;
+        else {
+          terminalPrint("night: use on or off", "terminal-error");
+          return;
+        }
+      }
+      lookoutState.apply();
+      lookoutState.save();
+      terminalPrint("night mode " + (lookoutState.night ? "on" : "off"), "terminal-banner");
+    },
+  },
 };
 
 // ---------- the read-eval-print loop ----------
@@ -525,7 +807,6 @@ function runTerminalCommand(raw) {
 
   if (!input) return;
 
-  // Split on whitespace: first word is the command, the rest are arguments.
   var parts = input.split(/\s+/);
   var name = parts[0].toLowerCase();
   var args = parts.slice(1);
@@ -542,7 +823,7 @@ function runTerminalCommand(raw) {
 // ---------- input handling ----------
 
 var commandHistory = [];
-var historyCursor = 0;   // sits one past the newest entry when not browsing
+var historyCursor = 0;
 
 terminalInput.addEventListener("keydown", function (e) {
   if (e.key === "Enter") {
@@ -557,7 +838,6 @@ terminalInput.addEventListener("keydown", function (e) {
     return;
   }
 
-  // Walk back and forth through what's already been typed.
   if (e.key === "ArrowUp") {
     e.preventDefault();
     if (historyCursor > 0) {
@@ -581,17 +861,15 @@ terminalInput.addEventListener("keydown", function (e) {
 
 
 /* ============================================================
-   7. boot
+   9. boot
    ============================================================ */
 
 var welcomeScreen = initializeWindow("welcome");
 var crateScreen = initializeWindow("crate");
 var terminalScreen = initializeWindow("terminal");
 
-// Clicking anywhere in the Terminal should put the caret back in the prompt.
 terminalScreen.addEventListener("mousedown", function (e) {
   if (e.target !== terminalInput) {
-    // Let the click finish first, or the browser un-focuses the input again.
     setTimeout(function () {
       terminalInput.focus();
     }, 0);
