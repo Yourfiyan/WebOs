@@ -33,9 +33,11 @@ python -m http.server 8000
 
 ## What's in it
 
-**The desktop** — a wallpaper, a translucent top bar with a live clock, and app
+**The desktop** — a wallpaper, a translucent system bar with a live clock and system status, and app
 icons down the left. One click selects an icon, a second click (or a
 double-click) opens it.
+
+**Control Center** — a quick-settings panel accessible from the system bar's "CC" trigger. Includes brightness dimming, volume control, Night Mode, and Theme switching. Settings persist to localStorage.
 
 **Windows** — draggable by their header only, closable by the dot, and they rise
 to the front when clicked. Every window is created the same way:
