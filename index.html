@@ -51,11 +51,64 @@
     </div>
   </div>
 
-  <!-- ─────────────── the top bar ─────────────── -->
+  <!-- ─────────────── the system bar ─────────────── -->
   <div id="top">
-    <p class="topbar-item topbar-brand" id="welcomeopen">Lookout</p>
-    <p class="topbar-item topbar-status" id="topbarStatus">still climbing</p>
-    <p class="topbar-item topbar-clock" id="clock">&mdash;</p>
+    <div class="sys-left">
+      <span class="sys-horizon" aria-hidden="true"></span>
+      <span class="sys-status" id="welcomeopen">Lookout</span>
+    </div>
+    <span class="sys-clock" id="clock">&mdash;</span>
+    <div class="sys-right">
+      <span class="sys-indicator" aria-hidden="true"></span>
+      <span class="sys-indicator" aria-hidden="true"></span>
+      <span class="sys-indicator" id="nightIndicator" aria-hidden="true" style="display:none"></span>
+      <div id="controlToggle" aria-label="Control Center" role="button" tabindex="0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <span>CC</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- brightness overlay for dimming -->
+  <div id="brightnessOverlay" aria-hidden="true"></div>
+
+  <!-- ─────────────── Control Center ─────────────── -->
+  <div id="controlCenter" style="display: none;" role="dialog" aria-label="Control Center">
+    <div class="cc-status">Display</div>
+    <div class="cc-row">
+      <span class="cc-label">Brightness</span>
+      <input type="range" id="cc-brightness" class="cc-slider" min="0" max="100" value="100">
+    </div>
+    <div class="cc-row">
+      <span class="cc-label">Volume</span>
+      <input type="range" id="cc-volume" class="cc-slider" min="0" max="100" value="70">
+    </div>
+
+    <div class="cc-status">Appearance</div>
+    <div class="cc-row">
+      <span class="cc-label">Night Mode</span>
+      <button id="cc-nightmode" class="cc-toggle">Off</button>
+    </div>
+    <div class="cc-row">
+      <span class="cc-label">Theme</span>
+      <div class="cc-themes" id="cc-themes">
+        <span class="cc-swatch" data-color="#F2B65A" style="background:#F2B65A" title="Amber"></span>
+        <span class="cc-swatch" data-color="#7DD3FC" style="background:#7DD3FC" title="Sky"></span>
+        <span class="cc-swatch" data-color="#F472B6" style="background:#F472B6" title="Rose"></span>
+        <span class="cc-swatch" data-color="#34D399" style="background:#34D399" title="Emerald"></span>
+        <span class="cc-swatch" data-color="#A78BFA" style="background:#A78BFA" title="Violet"></span>
+      </div>
+    </div>
+
+    <div class="cc-status">System</div>
+    <div class="cc-row">
+      <span class="cc-label">Apps</span>
+      <span class="cc-label" style="color:rgba(125,211,252,0.7);font-size:11px" id="cc-appcount">3 installed</span>
+    </div>
+    <div class="cc-row">
+      <span class="cc-label">Date</span>
+      <span class="cc-label" style="color:rgba(125,211,252,0.7);font-size:11px" id="cc-date">&mdash;</span>
+    </div>
   </div>
 
   <!-- ─────────────── the desktop ─────────────── -->
