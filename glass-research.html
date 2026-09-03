@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { background: url('./lookout.png') no-repeat center center fixed; background-size: cover; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; }
+  .liquid-glass {
+    width: 300px; height: 300px;
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(150%) brightness(1.1);
+    -webkit-backdrop-filter: blur(20px) saturate(150%) brightness(1.1);
+    box-shadow: 
+      0 30px 60px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      inset 0 -1px 0 rgba(255,255,255,0.1),
+      inset 1px 0 0 rgba(255,255,255,0.2),
+      inset -1px 0 0 rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .liquid-glass:hover {
+    transform: scale(1.02);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 
+      0 40px 80px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -1px 0 rgba(255,255,255,0.1),
+      inset 1px 0 0 rgba(255,255,255,0.2),
+      inset -1px 0 0 rgba(255,255,255,0.2);
+  }
+</style>
+</head>
+<body>
+  <div class="liquid-glass"></div>
+</body>
+</html>

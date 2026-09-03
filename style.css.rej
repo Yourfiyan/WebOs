@@ -1,0 +1,11 @@
+--- style.css
++++ style.css
+@@ -38,7 +38,7 @@
+ /* Active window state (using the biggestIndex Z-index bump conceptually) -
+    We lift it slightly when it's the active one, handled via the CSS hover for now to give that liquid feel */
+ .window:focus-within, .window:hover {
+-  box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-hover);
++  /* box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-hover); */
+ }
+ 
+ /* The dotted <abbr> underline browsers draw is scratchy at small sizes. */

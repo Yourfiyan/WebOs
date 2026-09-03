@@ -1,0 +1,148 @@
+The current result is visually polished, but it is STILL acrylic/frosted glass rather than the optical Liquid Glass effect I asked for.
+
+The fundamental missing property is **LENSING / MAGNIFICATION / REFRACTION**.
+
+Right now the background is essentially:
+
+background → blur → tint → translucent surface
+
+What I want is closer to:
+
+background → optical lens → localized magnification/distortion → blur/transmission → glass surface
+
+### The critical difference
+
+When a colorful or detailed object sits behind a Liquid Glass surface, I want that object to visibly **bend, shift, and slightly magnify through the glass**.
+
+For example, if a sharp red/blue shape is immediately outside the edge of the Control Center, the area seen THROUGH the glass should appear optically displaced/enlarged toward the curved glass boundary.
+
+The glass should behave like a **very subtle curved lens**, not like frosted plastic.
+
+Do NOT consider this task complete just because `backdrop-filter: blur()` looks good.
+
+### I specifically want:
+
+* genuine-looking background magnification
+* curved-edge lensing
+* localized refraction
+* subtle displacement of the wallpaper underneath
+* slight optical distortion around rounded corners
+* stronger distortion toward the perimeter/curved edges
+* very subtle chromatic separation at extreme edges if it improves realism
+* the background to remain recognizable through the material
+* the distortion to move naturally when the glass surface moves/expands
+
+The effect needs to be visible enough that I can deliberately look at a wallpaper detail behind the glass and say:
+
+**"That detail is being optically bent/magnified by the glass."**
+
+If I cannot see that, it is still acrylic.
+
+### Research / implementation
+
+Before modifying it, inspect actual web implementations of Liquid Glass that use techniques such as:
+
+* SVG `feDisplacementMap`
+* SVG turbulence/displacement
+* `backdrop-filter`
+* CSS masking
+* pseudo-elements
+* duplicated background layers
+* displacement maps
+* lens-shaped masks
+* magnification layers
+* chromatic aberration
+* dynamic displacement based on the glass geometry
+
+The `nikdelvin/liquid-glass` implementation is particularly relevant. Study how it achieves the optical distortion rather than simply copying its visual styling.
+
+### Important: solve the web-platform limitation intelligently
+
+I understand that normal CSS `backdrop-filter` does NOT provide true arbitrary geometric magnification of the backdrop.
+
+So don't pretend that increasing `blur()` or `saturate()` solves it.
+
+If necessary, create a **separate optical/refraction layer** specifically for the glass.
+
+For example, investigate whether the implementation can:
+
+1. capture/replicate the desktop wallpaper/background into a layer,
+2. transform that layer slightly (scale + position),
+3. clip it to the glass shape,
+4. apply an SVG displacement map,
+5. blend it with the actual backdrop,
+6. then place the translucent/specular glass material over it.
+
+If a true backdrop displacement approach is technically impossible with the current architecture, create the closest practical optical illusion using duplicated/masked background layers.
+
+### VERY IMPORTANT
+
+Do not replace the existing Liquid Glass system.
+
+Keep everything you already implemented:
+
+* centralized material tokens
+* blur
+* saturation
+* brightness
+* translucency
+* specular highlights
+* inner rim
+* shadows
+* interaction
+* Control Center animation
+* Night Mode
+* accent colors
+
+We are adding the **optical lens layer** on top of that system.
+
+### Visual test
+
+Please create/use a deliberately high-contrast test wallpaper while developing this.
+
+Put obvious:
+
+* circles
+* text
+* sharp lines
+* gradients
+* colorful shapes
+
+behind the Control Center and System Bar.
+
+Then inspect what happens underneath the glass.
+
+I should be able to clearly see the shapes being **slightly enlarged and displaced through the glass**.
+
+Once the effect is working, return to the normal Lookout wallpaper.
+
+### Do NOT
+
+Do NOT:
+
+* just increase blur
+* just increase transparency
+* add another white gradient
+* add a stronger border
+* add more shadows
+* call acrylic "Liquid Glass"
+* add a fake shine and consider it refraction
+* make the entire wallpaper globally distorted
+
+The distortion must be **localized to the glass surface**.
+
+### Quality target
+
+Think:
+
+**curved transparent optical lens**
+
+rather than:
+
+**blurred translucent panel**
+
+The current implementation is approximately 80% of the visual styling, but it is missing the most important 20%: **the actual optical behavior that makes Liquid Glass feel like glass.**
+
+Make that the primary objective of this pass.
+
+Afterward, show me what changed specifically in the refraction/magnification implementation and confirm that the background is actually being displaced/magnified rather than merely blurred.
