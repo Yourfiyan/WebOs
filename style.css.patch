@@ -1,0 +1,69 @@
+--- style.css
++++ style.css
+@@ -29,8 +29,8 @@
+   /* Container receives shadow and border bounds */
+   border: var(--os-glass-border);
+   border-radius: 20px;
+-  box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-md);
+-  transition: box-shadow var(--os-glass-spring), transform var(--os-glass-spring);
++  /* box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-md); */
++  /* transition: box-shadow var(--os-glass-spring), transform var(--os-glass-spring); */
+ 
+   max-height: calc(100vh - 56px);
+ }
+@@ -38,7 +38,7 @@
+ /* Active window state (using the biggestIndex Z-index bump conceptually) -
+    We lift it slightly when it's the active one, handled via the CSS hover for now to give that liquid feel */
+ .window:focus-within, .window:hover {
+-  box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-hover);
++  /* box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-hover); */
+ }
+ 
+ /* The dotted <abbr> underline browsers draw is scratchy at small sizes. */
+@@ -107,8 +107,8 @@
+   justify-content: space-between;
+   padding: 0px 14px;
+ 
+-  border-bottom: var(--os-glass-border);
+-  box-shadow: var(--os-glass-shadow-sm);
++  /* border-bottom: var(--os-glass-border); */
++  /* box-shadow: var(--os-glass-shadow-sm); */
+   color: #E8F1F8;
+   z-index: 9999;
+   position: relative;
+@@ -201,8 +201,8 @@
+   border-radius: 24px;
+ 
+   /* Liquid Glass Control Center */
+-  border: var(--os-glass-border);
+-  box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-lg);
++  /* border: var(--os-glass-border); */
++  /* box-shadow: var(--os-glass-inner-rim), var(--os-glass-shadow-lg); */
+ 
+   z-index: 10000;
+   display: none;
+@@ -744,9 +744,9 @@
+   border-radius: inherit;
+ 
+   /* The normal frosted glass treatment sits ON TOP of the warped background */
+-  background: var(--os-glass-bg);
+-  backdrop-filter: var(--os-glass-filter);
+-  -webkit-backdrop-filter: var(--os-glass-filter);
++  /* background: var(--os-glass-bg); */
++  /* backdrop-filter: var(--os-glass-filter); */
++  /* -webkit-backdrop-filter: var(--os-glass-filter); */
+ 
+   z-index: -1;
+   transition: background var(--os-glass-spring);
+@@ -755,9 +755,9 @@
+ 
+ /* Surface hovers instead of the container itself */
+ .window:focus-within .os-glass-surface, .window:hover .os-glass-surface {
+-  background: var(--os-glass-bg-hover);
++  /* background: var(--os-glass-bg-hover); */
+ }
+ 
+ .window:active .os-glass-surface {
+-  background: var(--os-glass-bg-active);
++  /* background: var(--os-glass-bg-active); */
+ }
