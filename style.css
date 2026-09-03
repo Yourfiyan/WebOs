@@ -28,7 +28,7 @@ body.night {
   flex-direction: column;
   border: solid 1px rgba(125, 211, 252, 0.25);
   border-radius: 20px;
-  background-color: rgba(11, 27, 43, 0.08);
+  background-color: rgba(11, 27, 43, 0.15);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: url(#os-lens-refraction) blur(4px);
@@ -212,7 +212,7 @@ abbr[title] {
   align-items: center;
   justify-content: space-between;
   padding: 0px 14px;
-  background-color: rgba(11, 27, 43, 0.08);
+  background-color: rgba(11, 27, 43, 0.15);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: url(#os-lens-refraction) blur(4px);
@@ -312,7 +312,7 @@ abbr[title] {
   padding: 14px;
   border-radius: 18px;
   border: solid 1px rgba(125, 211, 252, 0.2);
-  background-color: rgba(11, 27, 43, 0.08);
+  background-color: rgba(11, 27, 43, 0.15);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: url(#os-lens-refraction) blur(4px);
@@ -441,7 +441,7 @@ body.night {
 }
 
 body.night .window {
-  background-color: rgba(6, 16, 28, 0.15);
+  background-color: rgba(6, 16, 28, 0.25);
   border-color: rgba(125, 211, 252, 0.12);
 }
 
@@ -706,4 +706,13 @@ body.night .body-text {
   font-family: inherit;
   font-size: inherit;
   caret-color: var(--theme-color, #F2B65A);
+}
+
+/* Enhancement for legible text over highly transparent Liquid Glass */
+.windowbody, .headertext, .sys-status, .sys-clock, .cc-label, .cc-status {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+body.night .windowbody, body.night .headertext, body.night .sys-status, body.night .sys-clock, body.night .cc-label, body.night .cc-status {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.6);
 }
