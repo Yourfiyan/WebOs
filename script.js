@@ -15,6 +15,10 @@ var lookoutState = {
     night:    "lookout-night",
     brightness: "lookout-brightness",
     volume:   "lookout-volume",
+    wallpaper: "lookout-wallpaper",
+    customWallpapers: "lookout-custom-walls",
+    lockClockCustom: "lookout-lock-clock-custom",
+    lockDateCustom: "lookout-lock-date-custom"
   },
 
   defaults: {
@@ -22,12 +26,19 @@ var lookoutState = {
     night:      false,
     brightness: 100,
     volume:     70,
+    wallpaper:  "./lookout.png"
   },
 
   theme:      "#F2B65A",
   night:      false,
   brightness: 100,
   volume:     70,
+  wallpaper:  "./lookout.png",
+  customWallpapers: [],
+  lockClockCustom: null,
+  lockDateCustom: null,
+
+  isLocked:   true,
 
   load: function () {
     try {
@@ -39,6 +50,8 @@ var lookoutState = {
       if (b !== null) this.brightness = Math.max(0, Math.min(100, Number(b)));
       var v = localStorage.getItem(this._storageKeys.volume);
       if (v !== null) this.volume = Math.max(0, Math.min(100, Number(v)));
+      var w = localStorage.getItem(this._storageKeys.wallpaper);
+      if (w) this.wallpaper = w;
     } catch (e) { /* localStorage may be unavailable */ }
   },
 
@@ -48,6 +61,10 @@ var lookoutState = {
       localStorage.setItem(this._storageKeys.night, String(this.night));
       localStorage.setItem(this._storageKeys.brightness, String(this.brightness));
       localStorage.setItem(this._storageKeys.volume, String(this.volume));
+      localStorage.setItem(this._storageKeys.wallpaper, this.wallpaper);
+      localStorage.setItem(this._storageKeys.customWallpapers, JSON.stringify(this.customWallpapers));
+      if (this.lockClockCustom !== null) localStorage.setItem(this._storageKeys.lockClockCustom, this.lockClockCustom);
+      if (this.lockDateCustom !== null) localStorage.setItem(this._storageKeys.lockDateCustom, this.lockDateCustom);
     } catch (e) { /* silently ignore */ }
   },
 
@@ -61,6 +78,9 @@ var lookoutState = {
     } else {
       document.body.classList.remove("night");
     }
+
+    // Apply wallpaper
+    document.body.style.backgroundImage = "url('" + this.wallpaper + "')";
 
     // Brightness overlay: 100 → transparent, 0 → full black.
     var overlay = document.getElementById("brightnessOverlay");
@@ -106,10 +126,10 @@ lookoutState.apply();
 
 
 /* ============================================================
-   2. the system bar — clock + system indicators + CC trigger
+   2. the dock — clock + app icons + system controls
    ============================================================ */
 
-var topBar = document.querySelector("#top");
+var topBar = document.querySelector("#dock");
 
 function updateClock() {
   var now = new Date();
@@ -129,10 +149,121 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// The "Lookout" brand text in the system bar reopens the welcome window.
-var welcomeOpener = document.querySelector("#welcomeopen");
-if (welcomeOpener) {
-  welcomeOpener.addEventListener("click", function (e) {
+// Dock app click handlers.
+var dockApps = document.querySelectorAll(".dock-app");
+dockApps.forEach(function(app) {
+  app.addEventListener("click", function(e) {
+    e.stopPropagation();
+    var appName = app.getAttribute("data-app");
+    if (appName === "lock") {
+      // The Lock app brings up the lock screen overlay.
+      if (typeof lookoutState !== "undefined") {
+        lookoutState.isLocked = true;
+      }
+      if (typeof updateLockTime === "function") updateLockTime();
+      if (typeof renderWidgets === "function") renderWidgets();
+      var ls = document.getElementById("lockScreen");
+      if (ls) ls.classList.remove("hidden");
+      return;
+    }
+    if (appName && apps[appName]) {
+      openWindow(apps[appName]);
+    }
+  });
+});
+
+// App drawer / launcher functionality.
+var appDrawerOpen = false;
+
+function toggleAppDrawer() {
+  appDrawerOpen = !appDrawerOpen;
+  var drawer = document.getElementById("appDrawer");
+  if (drawer) {
+    drawer.style.display = appDrawerOpen ? "block" : "none";
+    if (appDrawerOpen) {
+      drawer.classList.add("open");
+    } else {
+      drawer.classList.remove("open");
+    }
+  }
+}
+
+// Build the app drawer grid with all available apps.
+function buildAppDrawer() {
+  var grid = document.getElementById("appDrawerGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
+
+  var appList = [
+    { id: "crate", name: "Crate", icon: "./crate.svg" },
+    { id: "terminal", name: "Terminal", icon: "./terminal.svg" },
+    { id: "lock", name: "Lock", icon: "./lock.svg" },
+    { id: "contacts", name: "Contacts", icon: "./icons/contacts.svg" },
+    { id: "projects", name: "Projects", icon: "./icons/projects.svg" },
+    { id: "weather", name: "Weather", icon: "./icons/weather.svg" },
+    { id: "game", name: "2048", icon: "./icons/game.svg" },
+    { id: "music", name: "Music", icon: "./icons/music.svg" },
+    { id: "notes", name: "Notes", icon: "./icons/notes.svg" }
+  ];
+
+  appList.forEach(function(appData) {
+    var item = document.createElement("div");
+    item.className = "appdrawer-item";
+    item.setAttribute("data-app", appData.id);
+    item.innerHTML = '<img src="' + appData.icon + '" alt=""><span>' + appData.name + '</span>';
+    item.addEventListener("click", function(e) {
+      e.stopPropagation();
+      if (apps[appData.id]) {
+        openWindow(apps[appData.id]);
+        toggleAppDrawer();
+      }
+    });
+    grid.appendChild(item);
+  });
+}
+
+buildAppDrawer();
+
+// Launcher toggle button.
+var launcherToggle = document.getElementById("launcherToggle");
+if (launcherToggle) {
+  launcherToggle.addEventListener("click", function(e) {
+    e.stopPropagation();
+    toggleAppDrawer();
+  });
+}
+
+// App drawer close button.
+var appDrawerClose = document.getElementById("appDrawerClose");
+if (appDrawerClose) {
+  appDrawerClose.addEventListener("click", function(e) {
+    e.stopPropagation();
+    toggleAppDrawer();
+  });
+}
+
+// App drawer background click to close.
+var appDrawerBg = document.getElementById("appDrawerBg");
+if (appDrawerBg) {
+  appDrawerBg.addEventListener("click", function(e) {
+    e.stopPropagation();
+    toggleAppDrawer();
+  });
+}
+
+// Close app drawer when clicking on the desktop.
+document.body.addEventListener("mousedown", function(e) {
+  if (appDrawerOpen && !e.target.closest("#appDrawer") && !e.target.closest("#launcherToggle")) {
+    appDrawerOpen = false;
+    var drawer = document.getElementById("appDrawer");
+    if (drawer) drawer.style.display = "none";
+  }
+});
+
+// The dot in the dock reopens the welcome window.
+var dockDot = document.querySelector(".dock-dot");
+if (dockDot) {
+  dockDot.addEventListener("click", function (e) {
     e.stopPropagation();
     if (apps.welcome) {
       openWindow(apps.welcome);
@@ -229,6 +360,526 @@ function updateAppCount() {
 }
 
 
+// Settings Wallpapers
+var wallpapers = [
+  {
+    thumb: "./lookout.png",
+    full:  "./lookout.png"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=1920&q=80"
+  },
+  {
+    thumb: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=200&h=150&fit=crop&q=80",
+    full:  "https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80"
+  }
+];
+
+var ccWallContainer = document.getElementById("cc-wallpapers");
+
+function renderWallpapers() {
+  if (!ccWallContainer) return;
+  ccWallContainer.innerHTML = "";
+
+  // Built-in wallpapers are {thumb, full} objects; custom ones are plain URL strings
+  wallpapers.forEach(function (wp) {
+    var img = document.createElement("img");
+    img.className = "cc-wall-thumb";
+    img.src = wp.thumb;
+    img.alt = "Wallpaper";
+    if (lookoutState.wallpaper === wp.full) img.classList.add("active");
+    img.addEventListener("click", function () {
+      lookoutState.wallpaper = wp.full;
+      lookoutState.apply();
+      lookoutState.save();
+      renderWallpapers();
+    });
+    ccWallContainer.appendChild(img);
+  });
+
+  (lookoutState.customWallpapers || []).forEach(function (url) {
+    var img = document.createElement("img");
+    img.className = "cc-wall-thumb";
+    img.src = url;
+    img.alt = "Custom Wallpaper";
+    if (lookoutState.wallpaper === url) img.classList.add("active");
+    img.addEventListener("click", function () {
+      lookoutState.wallpaper = url;
+      lookoutState.apply();
+      lookoutState.save();
+      renderWallpapers();
+    });
+    ccWallContainer.appendChild(img);
+  });
+
+  var addBtn = document.createElement("div");
+  addBtn.className = "cc-wall-thumb cc-wall-add";
+  addBtn.innerHTML = "+";
+  addBtn.title = "Add custom wallpaper URL";
+  addBtn.addEventListener("click", function () {
+    var url = prompt("Enter image URL for custom wallpaper:");
+    if (url && url.trim().length > 0) {
+      if (!lookoutState.customWallpapers) lookoutState.customWallpapers = [];
+      lookoutState.customWallpapers.push(url.trim());
+      lookoutState.wallpaper = url.trim();
+      lookoutState.save();
+      lookoutState.apply();
+      renderWallpapers();
+    }
+  });
+  ccWallContainer.appendChild(addBtn);
+}
+
+if (ccWallContainer) {
+  renderWallpapers();
+}
+lookoutState.apply(); // call apply here again to highlight the initial wallpaper
+
+/* ============================================================
+   3b. Lock Screen — iOS-style customizable
+   ============================================================ */
+var lockScreen = document.getElementById("lockScreen");
+var unlockText = document.getElementById("unlockText");
+var lockClock = document.getElementById("lockClock");
+var lockDate = document.getElementById("lockDate");
+var lockIcon = document.getElementById("lockIcon");
+
+var lsState = {
+  _key: "lookout-lockscreen",
+
+  editing: false,
+  clockStyle: "default",
+  widgets: [],
+
+  clockStyles: [
+    { id: "default",  label: "Default" },
+    { id: "thin",     label: "Thin" },
+    { id: "rounded",  label: "Rounded" },
+    { id: "mono",     label: "Mono" },
+    { id: "serif",    label: "Serif" }
+  ],
+
+  widgetTypes: [
+    { id: "weather",   icon: "☁️", name: "Weather",   desc: "Temperature & conditions", slot: "bottom" },
+    { id: "battery",   icon: "🔋", name: "Battery",   desc: "Charge level",             slot: "bottom" },
+    { id: "quote",     icon: "💬", name: "Quote",     desc: "Inspirational quote",      slot: "bottom" },
+    { id: "countdown", icon: "⏳",       name: "Countdown", desc: "Days until an event",      slot: "bottom" },
+    { id: "greeting",  icon: "👋", name: "Greeting",  desc: "Personalized greeting",    slot: "top" },
+    { id: "custom",    icon: "✏️",  name: "Custom Text", desc: "Your own text",          slot: "bottom" }
+  ],
+
+  quotes: [
+    "The only way to do great work is to love what you do.",
+    "Stay hungry, stay foolish.",
+    "Think different.",
+    "Innovation distinguishes between a leader and a follower.",
+    "Your time is limited, don't waste it living someone else's life.",
+    "The future belongs to those who believe in the beauty of their dreams."
+  ],
+
+  load: function() {
+    try {
+      var d = localStorage.getItem(this._key);
+      if (d) {
+        var parsed = JSON.parse(d);
+        if (parsed.clockStyle) this.clockStyle = parsed.clockStyle;
+        if (parsed.widgets) this.widgets = parsed.widgets;
+      }
+    } catch(e) {}
+  },
+
+  save: function() {
+    try {
+      localStorage.setItem(this._key, JSON.stringify({
+        clockStyle: this.clockStyle,
+        widgets: this.widgets
+      }));
+    } catch(e) {}
+  }
+};
+
+lsState.load();
+
+function updateLockTime() {
+  if (lookoutState.isLocked) {
+    var now = new Date();
+    var time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    var date = now.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" }).replace(",", "");
+    if (lockClock) lockClock.textContent = time;
+    if (lockDate) lockDate.textContent = date;
+  }
+}
+
+setInterval(updateLockTime, 1000);
+updateLockTime();
+
+function applyClockStyle() {
+  if (!lockClock) return;
+  lockClock.className = "lock-clock";
+  if (lsState.clockStyle !== "default") {
+    lockClock.classList.add("style-" + lsState.clockStyle);
+  }
+}
+
+applyClockStyle();
+
+function getWidgetContent(w) {
+  switch (w.type) {
+    case "weather":
+      return { label: "WEATHER", value: "22°C", small: "Partly Cloudy" };
+    case "battery":
+      var lvl = typeof navigator.getBattery === "function" ? "..." : "87%";
+      if (typeof navigator.getBattery === "function") {
+        navigator.getBattery().then(function(b) {
+          var el = document.querySelector('[data-wid="' + w.id + '"] .ls-widget-value');
+          if (el) el.textContent = Math.round(b.level * 100) + "%";
+          var sm = document.querySelector('[data-wid="' + w.id + '"] .ls-widget-small');
+          if (sm) sm.textContent = b.charging ? "Charging" : "On Battery";
+        });
+      }
+      return { label: "BATTERY", value: lvl, small: "" };
+    case "quote":
+      var q = lsState.quotes[Math.floor(Math.random() * lsState.quotes.length)];
+      return { label: "QUOTE", value: "", small: "“" + q + "”" };
+    case "countdown":
+      var target = w.data && w.data.date ? new Date(w.data.date) : null;
+      var evtName = w.data && w.data.name ? w.data.name : "Event";
+      if (target) {
+        var diff = Math.ceil((target - new Date()) / (1000 * 60 * 60 * 24));
+        return { label: "COUNTDOWN", value: diff + " days", small: evtName };
+      }
+      return { label: "COUNTDOWN", value: "—", small: "Tap to set" };
+    case "greeting":
+      var hr = new Date().getHours();
+      var greet = hr < 12 ? "Good Morning" : hr < 18 ? "Good Afternoon" : "Good Evening";
+      var name = w.data && w.data.name ? w.data.name : "";
+      return { label: "", value: "", small: "", inline: name ? greet + ", " + name : greet };
+    case "custom":
+      return { label: "", value: w.data && w.data.text ? w.data.text : "Custom", small: "" };
+    default:
+      return { label: "", value: "?", small: "" };
+  }
+}
+
+function renderWidgets() {
+  var bottomRow = document.getElementById("lsWidgetBottom");
+  var topSlot = document.getElementById("lsWidgetTop");
+  if (!bottomRow || !topSlot) return;
+
+  bottomRow.innerHTML = "";
+  topSlot.innerHTML = '<div class="ls-slot-placeholder">+</div>';
+  topSlot.classList.remove("has-widget");
+
+  lsState.widgets.forEach(function(w) {
+    var content = getWidgetContent(w);
+    var el = document.createElement("div");
+    el.setAttribute("data-wid", w.id);
+
+    if (w.slot === "top" || (w.type === "greeting")) {
+      el.className = "ls-widget ls-widget-inline";
+      el.innerHTML =
+        '<div class="ls-widget-remove" data-remove="' + w.id + '">&times;</div>' +
+        '<div style="font-size:20px;font-weight:500;color:rgba(232,241,248,0.85);text-shadow:0 2px 10px rgba(0,0,0,0.5);">' + (content.inline || content.value) + '</div>';
+      topSlot.innerHTML = "";
+      topSlot.classList.add("has-widget");
+      topSlot.appendChild(el);
+    } else {
+      el.className = "ls-widget";
+      var html = '<div class="ls-widget-remove" data-remove="' + w.id + '">&times;</div>';
+      if (content.label) html += '<div class="ls-widget-label">' + content.label + '</div>';
+      if (content.value) html += '<div class="ls-widget-value">' + content.value + '</div>';
+      if (content.small) html += '<div class="ls-widget-small">' + content.small + '</div>';
+      if (!content.label && !content.value && content.small) {
+        html += '<div class="ls-widget-small" style="font-size:13px;line-height:1.4;max-width:200px;">' + content.small + '</div>';
+      }
+      if (w.type === "custom" && content.value) {
+        el.innerHTML = '<div class="ls-widget-remove" data-remove="' + w.id + '">&times;</div>' +
+          '<div class="ls-widget-value" style="font-size:14px;">' + content.value + '</div>';
+      } else {
+        el.innerHTML = html;
+      }
+      bottomRow.appendChild(el);
+    }
+  });
+
+  document.querySelectorAll(".ls-widget-remove").forEach(function(btn) {
+    btn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var rid = btn.getAttribute("data-remove");
+      lsState.widgets = lsState.widgets.filter(function(w) { return w.id !== rid; });
+      lsState.save();
+      renderWidgets();
+    });
+  });
+}
+
+renderWidgets();
+
+// Long-press to enter edit mode
+var lsLongPressTimer = null;
+
+if (lockScreen) {
+  lockScreen.addEventListener("mousedown", function(e) {
+    if (lsState.editing) return;
+    if (e.target.closest(".unlock-text") || e.target.closest(".ls-bottom-btn")) return;
+    lsLongPressTimer = setTimeout(function() {
+      enterLsEditMode();
+    }, 600);
+  });
+  lockScreen.addEventListener("mouseup", function() {
+    clearTimeout(lsLongPressTimer);
+  });
+  lockScreen.addEventListener("mouseleave", function() {
+    clearTimeout(lsLongPressTimer);
+  });
+  lockScreen.addEventListener("touchstart", function(e) {
+    if (lsState.editing) return;
+    if (e.target.closest(".unlock-text") || e.target.closest(".ls-bottom-btn")) return;
+    lsLongPressTimer = setTimeout(function() {
+      enterLsEditMode();
+    }, 600);
+  }, { passive: true });
+  lockScreen.addEventListener("touchend", function() {
+    clearTimeout(lsLongPressTimer);
+  });
+}
+
+function enterLsEditMode() {
+  lsState.editing = true;
+  lockScreen.classList.add("editing");
+  renderWidgets();
+}
+
+function exitLsEditMode() {
+  lsState.editing = false;
+  lockScreen.classList.remove("editing");
+  closePicker();
+  closeClockPicker();
+  renderWidgets();
+}
+
+var lsEditDone = document.getElementById("lsEditDone");
+if (lsEditDone) {
+  lsEditDone.addEventListener("click", function(e) {
+    e.stopPropagation();
+    exitLsEditMode();
+  });
+}
+
+// Tapping clock area in edit mode opens clock style picker
+var lsClockArea = document.querySelector(".ls-clock-area");
+if (lsClockArea) {
+  lsClockArea.addEventListener("click", function(e) {
+    if (!lsState.editing) return;
+    e.stopPropagation();
+    openClockPicker();
+  });
+}
+
+// Customize button opens widget picker
+var lsEditCustomize = document.getElementById("lsEditCustomize");
+if (lsEditCustomize) {
+  lsEditCustomize.addEventListener("click", function(e) {
+    e.stopPropagation();
+    openPicker();
+  });
+}
+
+// Tapping top widget slot in edit mode opens picker filtered to top widgets
+var lsWidgetTop = document.getElementById("lsWidgetTop");
+if (lsWidgetTop) {
+  lsWidgetTop.addEventListener("click", function(e) {
+    if (!lsState.editing) return;
+    e.stopPropagation();
+    openPicker("top");
+  });
+}
+
+// Tapping bottom widget row in edit mode opens picker
+var lsWidgetBottom = document.getElementById("lsWidgetBottom");
+if (lsWidgetBottom) {
+  lsWidgetBottom.addEventListener("click", function(e) {
+    if (!lsState.editing) return;
+    if (e.target.closest(".ls-widget")) return;
+    e.stopPropagation();
+    openPicker("bottom");
+  });
+}
+
+// Widget picker
+var lsPickerEl = document.getElementById("lsWidgetPicker");
+var lsPickerGrid = document.getElementById("lsPickerGrid");
+var lsPickerSlot = null;
+
+function openPicker(slot) {
+  lsPickerSlot = slot || "bottom";
+  if (!lsPickerEl || !lsPickerGrid) return;
+  lsPickerGrid.innerHTML = "";
+
+  lsState.widgetTypes.forEach(function(wt) {
+    var card = document.createElement("div");
+    card.className = "ls-picker-card";
+    card.innerHTML =
+      '<div class="ls-picker-icon">' + wt.icon + '</div>' +
+      '<div class="ls-picker-name">' + wt.name + '</div>' +
+      '<div class="ls-picker-desc">' + wt.desc + '</div>';
+    card.addEventListener("click", function() {
+      addWidget(wt);
+    });
+    lsPickerGrid.appendChild(card);
+  });
+
+  lsPickerEl.classList.add("open");
+}
+
+function closePicker() {
+  if (lsPickerEl) lsPickerEl.classList.remove("open");
+}
+
+var lsPickerClose = document.getElementById("lsPickerClose");
+if (lsPickerClose) {
+  lsPickerClose.addEventListener("click", function(e) {
+    e.stopPropagation();
+    closePicker();
+  });
+}
+
+function addWidget(wt) {
+  var newW = {
+    id: wt.id + "-" + Date.now(),
+    type: wt.id,
+    slot: wt.id === "greeting" ? "top" : (lsPickerSlot || wt.slot),
+    data: {}
+  };
+
+  if (wt.id === "greeting") {
+    var name = prompt("Enter your name (or leave empty):");
+    newW.data.name = name || "";
+  } else if (wt.id === "countdown") {
+    var evtName = prompt("Event name:");
+    var evtDate = prompt("Event date (YYYY-MM-DD):");
+    newW.data.name = evtName || "Event";
+    newW.data.date = evtDate || "";
+  } else if (wt.id === "custom") {
+    var txt = prompt("Enter your text:");
+    newW.data.text = txt || "Custom";
+  }
+
+  if (newW.slot === "top") {
+    lsState.widgets = lsState.widgets.filter(function(w) { return w.slot !== "top" && w.type !== "greeting"; });
+  }
+
+  lsState.widgets.push(newW);
+  lsState.save();
+  closePicker();
+  renderWidgets();
+}
+
+// Clock style picker
+var lsClockPickerEl = document.getElementById("lsClockPicker");
+var lsClockStyles = document.getElementById("lsClockStyles");
+
+function openClockPicker() {
+  if (!lsClockPickerEl || !lsClockStyles) return;
+  lsClockStyles.innerHTML = "";
+
+  lsState.clockStyles.forEach(function(cs) {
+    var card = document.createElement("div");
+    card.className = "ls-clock-style-card" + (lsState.clockStyle === cs.id ? " active" : "");
+    card.innerHTML = '<span class="preview-text style-' + cs.id + '">10:30</span>';
+    card.addEventListener("click", function() {
+      lsState.clockStyle = cs.id;
+      lsState.save();
+      applyClockStyle();
+      openClockPicker();
+    });
+    lsClockStyles.appendChild(card);
+  });
+
+  lsClockPickerEl.classList.add("open");
+}
+
+function closeClockPicker() {
+  if (lsClockPickerEl) lsClockPickerEl.classList.remove("open");
+}
+
+var lsClockPickerCloseBtn = document.getElementById("lsClockPickerClose");
+if (lsClockPickerCloseBtn) {
+  lsClockPickerCloseBtn.addEventListener("click", function(e) {
+    e.stopPropagation();
+    closeClockPicker();
+  });
+}
+
+// Flashlight toggle
+var lsFlashlight = document.getElementById("lsFlashlight");
+if (lsFlashlight) {
+  lsFlashlight.addEventListener("click", function(e) {
+    e.stopPropagation();
+    lsFlashlight.classList.toggle("active");
+    var overlay = document.getElementById("brightnessOverlay");
+    if (overlay) {
+      if (lsFlashlight.classList.contains("active")) {
+        overlay.style.backgroundColor = "rgba(255,255,255,0.7)";
+      } else {
+        lookoutState.apply();
+      }
+    }
+  });
+}
+
+if (lookoutState.isLocked && lockScreen) {
+  lockScreen.classList.remove("hidden");
+}
+
+if (unlockText) {
+  unlockText.addEventListener("click", function () {
+    if (lsState.editing) return;
+    lookoutState.isLocked = false;
+    exitLsEditMode();
+    if (lockScreen) lockScreen.classList.add("hidden");
+  });
+}
+
+if (lockIcon) {
+  lockIcon.addEventListener("click", function () {
+    lookoutState.isLocked = true;
+    updateLockTime();
+    renderWidgets();
+    if (lockScreen) lockScreen.classList.remove("hidden");
+  });
+
+  // Prevent selecting it like an app icon or handle standard clicks
+  lockIcon.addEventListener("mousedown", function(e) {
+    e.stopPropagation();
+  });
+}
+
 /* ============================================================
    4. window management
    ============================================================ */
@@ -238,57 +889,109 @@ var biggestIndex = 1;
 
 // ---------- dragging ----------
 
-// Adapted from the W3Schools draggable-element recipe. Given a window, this
-// makes it draggable — by its header if it has one, otherwise from anywhere.
+// Given a window, make it draggable — by its header if it has one, otherwise
+// from anywhere. Pointer Events cover mouse, touch, and pen input alike.
 function dragElement(element) {
-  var pointerX = 0;
-  var pointerY = 0;
-  var shiftX = 0;
-  var shiftY = 0;
+  var handle = document.getElementById(element.id + "header") || element;
+  var activePointerId = null;
+  var pointerOffsetX = 0;
+  var pointerOffsetY = 0;
+  var dragging = false;
+  var useMouseFallback = false;
 
-  var handle = document.getElementById(element.id + "header");
-
-  if (handle) {
-    handle.onmousedown = startDragging;
-  } else {
-    element.onmousedown = startDragging;
-  }
+  handle.addEventListener("pointerdown", startDragging);
+  handle.addEventListener("pointermove", dragMove);
+  handle.addEventListener("pointerup", stopDragging);
+  handle.addEventListener("pointercancel", stopDragging);
 
   function startDragging(e) {
-    e = e || window.event;
+    if (e.pointerType === "mouse" && useMouseFallback) return;
+    if (!e.isPrimary || e.button !== 0 || e.target.closest(".closebutton")) return;
+
     e.preventDefault();
+    handleWindowTap(element);
 
-    pointerX = e.clientX;
-    pointerY = e.clientY;
-
-    document.onmousemove = dragMove;
-    document.onmouseup = stopDragging;
+    var rect = element.getBoundingClientRect();
+    activePointerId = e.pointerId;
+    pointerOffsetX = e.clientX - rect.left;
+    pointerOffsetY = e.clientY - rect.top;
+    if (handle.setPointerCapture) {
+      try {
+        handle.setPointerCapture(activePointerId);
+      } catch (err) {}
+    }
+    dragging = true;
+    element.classList.add("dragging");
   }
 
   function dragMove(e) {
-    e = e || window.event;
+    if (e.pointerType === "mouse" && useMouseFallback) return;
+    if (e.pointerId !== activePointerId) return;
+
     e.preventDefault();
 
-    shiftX = pointerX - e.clientX;
-    shiftY = pointerY - e.clientY;
-    pointerX = e.clientX;
-    pointerY = e.clientY;
-
-    var nextTop = element.offsetTop - shiftY;
-    var nextLeft = element.offsetLeft - shiftX;
-
-    var minTop = topBar.offsetHeight;
-    var maxTop = window.innerHeight - 60;
-    var maxLeft = window.innerWidth - 80;
-    var minLeft = 80 - element.offsetWidth;
+    var margin = 8;
+    var minTop = margin;
+    var minLeft = margin;
+    var maxTop = Math.max(minTop, window.innerHeight - topBar.offsetHeight - element.offsetHeight - margin);
+    var maxLeft = Math.max(minLeft, window.innerWidth - element.offsetWidth - margin);
+    var nextTop = e.clientY - pointerOffsetY;
+    var nextLeft = e.clientX - pointerOffsetX;
 
     element.style.top = Math.min(Math.max(nextTop, minTop), maxTop) + "px";
     element.style.left = Math.min(Math.max(nextLeft, minLeft), maxLeft) + "px";
   }
 
-  function stopDragging() {
-    document.onmousemove = null;
-    document.onmouseup = null;
+  function stopDragging(e) {
+    if (e.pointerType === "mouse" && useMouseFallback) return;
+    if (e.pointerId !== activePointerId) return;
+
+    if (handle.hasPointerCapture(activePointerId)) {
+      handle.releasePointerCapture(activePointerId);
+    }
+
+    activePointerId = null;
+    dragging = false;
+    element.classList.remove("dragging");
+  }
+
+  // Mouse fallback - only use if Pointer Events don't work
+  // This only activates on browsers that don't fire pointer events properly
+  if (!window.PointerEvent) {
+    useMouseFallback = true;
+    handle.addEventListener("mousedown", function(e) {
+      if (e.button !== 0 || e.target.closest(".closebutton")) return;
+      e.preventDefault();
+      handleWindowTap(element);
+      dragging = true;
+      element.classList.add("dragging");
+      var rect = element.getBoundingClientRect();
+      pointerOffsetX = e.clientX - rect.left;
+      pointerOffsetY = e.clientY - rect.top;
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    });
+
+    function onMouseMove(e) {
+      if (!dragging) return;
+      e.preventDefault();
+      var margin = 8;
+      var minTop = margin;
+      var minLeft = margin;
+      var maxTop = Math.max(minTop, window.innerHeight - topBar.offsetHeight - element.offsetHeight - margin);
+      var maxLeft = Math.max(minLeft, window.innerWidth - element.offsetWidth - margin);
+      var nextTop = e.clientY - pointerOffsetY;
+      var nextLeft = e.clientX - pointerOffsetX;
+      element.style.top = Math.min(Math.max(nextTop, minTop), maxTop) + "px";
+      element.style.left = Math.min(Math.max(nextLeft, minLeft), maxLeft) + "px";
+    }
+
+    function onMouseUp(e) {
+      dragging = false;
+      element.classList.remove("dragging");
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
   }
 }
 
@@ -298,9 +1001,9 @@ function clampIntoView(element) {
   if (element.style.display === "none") return;
 
   var margin = 8;
-  var minTop = topBar.offsetHeight + margin;
+  var minTop = margin;
   var minLeft = margin;
-  var maxTop = Math.max(minTop, window.innerHeight - element.offsetHeight - margin);
+  var maxTop = Math.max(minTop, window.innerHeight - topBar.offsetHeight - element.offsetHeight - margin);
   var maxLeft = Math.max(minLeft, window.innerWidth - element.offsetWidth - margin);
 
   element.style.top = Math.min(Math.max(element.offsetTop, minTop), maxTop) + "px";
@@ -338,26 +1041,50 @@ function addWindowTapHandling(element) {
 
 function openWindow(element) {
   element.style.display = "flex";
+  element.classList.remove("opening");
+  void element.offsetWidth;
+  element.classList.add("opening");
+  element.addEventListener("animationend", function handler() {
+    element.classList.remove("opening");
+    element.removeEventListener("animationend", handler);
+  });
   clampIntoView(element);
   raiseWindow(element);
+  markDockRunningFromWindow(element, true);
 }
 
 function closeWindow(element) {
   element.style.display = "none";
+  markDockRunningFromWindow(element, false);
+}
+
+// Map window IDs to dock app IDs for running indicators.
+var windowAppMap = {
+  crate: "crate",
+  terminal: "terminal",
+  lock: "lock",
+  contacts: "contacts",
+  projects: "projects",
+  weather: "weather",
+  game: "game",
+  music: "music",
+  notes: "notes"
+};
+
+function markDockRunningFromWindow(element, isRunning) {
+  var winId = element.id;
+  var appId = windowAppMap[winId];
+  if (appId) {
+    markDockAppRunning(appId, isRunning);
+  }
 }
 
 
 /* ============================================================
-   5. desktop icons
+   5. dock app running indicators + icon selection stubs
    ============================================================ */
 
 var selectedIcon = undefined;
-
-function selectIcon(element) {
-  deselectIcon(selectedIcon);
-  element.classList.add("selected");
-  selectedIcon = element;
-}
 
 function deselectIcon(element) {
   if (!element) return;
@@ -365,12 +1092,13 @@ function deselectIcon(element) {
   if (selectedIcon === element) selectedIcon = undefined;
 }
 
-function handleIconTap(icon, windowElement) {
-  if (icon.classList.contains("selected")) {
-    deselectIcon(icon);
-    openWindow(windowElement);
+function markDockAppRunning(appId, isRunning) {
+  var dockApp = document.querySelector(".dock-app[data-app='" + appId + "']");
+  if (!dockApp) return;
+  if (isRunning) {
+    dockApp.classList.add("running");
   } else {
-    selectIcon(icon);
+    dockApp.classList.remove("running");
   }
 }
 
@@ -398,10 +1126,18 @@ function initializeWindow(name) {
   }
 
   if (icon) {
-    icon.addEventListener("click", function () {
+    icon.addEventListener("click", function (e) {
+      if (icon.classList.contains("just-dragged")) {
+        icon.classList.remove("just-dragged");
+        return;
+      }
       handleIconTap(icon, windowElement);
     });
     icon.addEventListener("dblclick", function () {
+      if (icon.classList.contains("just-dragged")) {
+        icon.classList.remove("just-dragged");
+        return;
+      }
       deselectIcon(icon);
       openWindow(windowElement);
     });
@@ -419,7 +1155,7 @@ function initializeWindow(name) {
 }
 
 document.body.addEventListener("mousedown", function (e) {
-  if (e.target === document.body || e.target.id === "desktopApps") {
+  if (e.target === document.body) {
     deselectIcon(selectedIcon);
   }
 });
@@ -867,6 +1603,12 @@ terminalInput.addEventListener("keydown", function (e) {
 var welcomeScreen = initializeWindow("welcome");
 var crateScreen = initializeWindow("crate");
 var terminalScreen = initializeWindow("terminal");
+var contactsScreen = initializeWindow("contacts");
+var projectsScreen = initializeWindow("projects");
+var weatherScreen = initializeWindow("weather");
+var gameScreen = initializeWindow("game");
+var musicScreen = initializeWindow("music");
+var notesScreen = initializeWindow("notes");
 
 terminalScreen.addEventListener("mousedown", function (e) {
   if (e.target !== terminalInput) {

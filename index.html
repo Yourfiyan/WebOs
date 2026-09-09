@@ -11,6 +11,69 @@
 <body
   style="background-image: url(./lookout.png); background-size: cover; background-position: center; background-repeat: no-repeat; height: 100vh; margin: 0px; overflow: hidden; color: #E8F1F8; font-family: Inter, Segoe UI, Helvetica, sans-serif;">
 
+  <!-- ─────────────── Lock Screen ─────────────── -->
+  <div id="lockScreen" class="lock-screen">
+
+    <!-- Top widget slot (above clock) -->
+    <div class="ls-top-area">
+      <div id="lsWidgetTop" class="ls-widget-slot ls-widget-top" data-slot="top">
+        <div class="ls-slot-placeholder">+</div>
+      </div>
+    </div>
+
+    <!-- Clock area -->
+    <div class="ls-clock-area">
+      <div id="lockDate" class="lock-date">&mdash;</div>
+      <div id="lockClock" class="lock-clock">&mdash;</div>
+    </div>
+
+    <!-- Bottom widget row (below clock) -->
+    <div id="lsWidgetBottom" class="ls-widget-row" data-slot="bottom"></div>
+
+    <!-- Spacer to push unlock to bottom -->
+    <div class="ls-spacer"></div>
+
+    <!-- Flashlight + Camera buttons (iOS style) -->
+    <div class="ls-bottom-bar">
+      <div class="ls-bottom-btn" id="lsFlashlight" title="Flashlight">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div id="unlockText" class="unlock-text">Swipe up to unlock</div>
+      <div class="ls-bottom-btn" id="lsCamera" title="Camera">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+    </div>
+
+    <!-- Edit mode overlay controls -->
+    <div id="lsEditOverlay" class="ls-edit-overlay">
+      <div class="ls-edit-top-bar">
+        <button id="lsEditDone" class="ls-edit-btn ls-edit-done">Done</button>
+      </div>
+      <div class="ls-edit-bottom-bar">
+        <button id="lsEditCustomize" class="ls-edit-btn ls-edit-customize">Customize</button>
+      </div>
+    </div>
+
+    <!-- Widget picker sheet -->
+    <div id="lsWidgetPicker" class="ls-widget-picker">
+      <div class="ls-picker-header">
+        <span class="ls-picker-title">Add Widget</span>
+        <button id="lsPickerClose" class="ls-picker-close">&times;</button>
+      </div>
+      <div class="ls-picker-grid" id="lsPickerGrid"></div>
+    </div>
+
+    <!-- Clock style picker -->
+    <div id="lsClockPicker" class="ls-clock-picker">
+      <div class="ls-picker-header">
+        <span class="ls-picker-title">Clock Style</span>
+        <button id="lsClockPickerClose" class="ls-picker-close">&times;</button>
+      </div>
+      <div class="ls-clock-styles" id="lsClockStyles"></div>
+    </div>
+
+  </div>
+
   <!-- ─────────────── the welcome window ─────────────── -->
   <!-- Position and size stay in-line, since they're this window's own business.
        Everything else now comes from the .window class. -->
@@ -43,7 +106,7 @@
       <p class="muted">
         Everything on this machine is something I made, listened to, or figured out the hard way.
         Drag this window by its header, close it with the dot, and click
-        <strong class="accent">Lookout</strong> up top to get it back.
+        <strong class="accent">Lookout</strong> at the bottom to get it back.
       </p>
 
       <a class="pill pill-solid" href="https://github.com/Yourfiyan">GitHub</a>
@@ -51,21 +114,76 @@
     </div>
   </div>
 
-  <!-- ─────────────── the system bar ─────────────── -->
-  <div id="top">
-    <div class="sys-left">
-      <span class="sys-horizon" aria-hidden="true"></span>
-      <span class="sys-status" id="welcomeopen">Lookout</span>
-    </div>
-    <span class="sys-clock" id="clock">&mdash;</span>
-    <div class="sys-right">
-      <span class="sys-indicator" aria-hidden="true"></span>
-      <span class="sys-indicator" aria-hidden="true"></span>
-      <span class="sys-indicator" id="nightIndicator" aria-hidden="true" style="display:none"></span>
-      <div id="controlToggle" aria-label="Control Center" role="button" tabindex="0">
-        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-        <span>CC</span>
+  <!-- ─────────────── the dock ─────────────── -->
+  <div id="dock">
+    <div class="dock-inner">
+      <div class="dock-left">
+        <span class="dock-dot" aria-hidden="true"></span>
+        <span class="dock-clock" id="clock">&mdash;</span>
       </div>
+      <div class="dock-apps" id="dockApps">
+        <div class="dock-app" id="crateDock" data-app="crate" title="Crate">
+          <img class="dock-app-icon" src="./crate.svg" alt="">
+          <span class="dock-app-label">Crate</span>
+        </div>
+        <div class="dock-app" id="terminalDock" data-app="terminal" title="Terminal">
+          <img class="dock-app-icon" src="./terminal.svg" alt="">
+          <span class="dock-app-label">Terminal</span>
+        </div>
+        <div class="dock-app" id="lockDock" data-app="lock" title="Lock">
+          <img class="dock-app-icon" src="./lock.svg" alt="">
+          <span class="dock-app-label">Lock</span>
+        </div>
+        <div class="dock-app" id="contactsDock" data-app="contacts" title="Contacts">
+          <img class="dock-app-icon" src="./icons/contacts.svg" alt="">
+          <span class="dock-app-label">Contacts</span>
+        </div>
+        <div class="dock-app" id="projectsDock" data-app="projects" title="Projects">
+          <img class="dock-app-icon" src="./icons/projects.svg" alt="">
+          <span class="dock-app-label">Projects</span>
+        </div>
+        <div class="dock-app" id="weatherDock" data-app="weather" title="Weather">
+          <img class="dock-app-icon" src="./icons/weather.svg" alt="">
+          <span class="dock-app-label">Weather</span>
+        </div>
+        <div class="dock-app" id="gameDock" data-app="game" title="2048">
+          <img class="dock-app-icon" src="./icons/game.svg" alt="">
+          <span class="dock-app-label">2048</span>
+        </div>
+        <div class="dock-app" id="musicDock" data-app="music" title="Music">
+          <img class="dock-app-icon" src="./icons/music.svg" alt="">
+          <span class="dock-app-label">Music</span>
+        </div>
+        <div class="dock-app" id="notesDock" data-app="notes" title="Notes">
+          <img class="dock-app-icon" src="./icons/notes.svg" alt="">
+          <span class="dock-app-label">Notes</span>
+        </div>
+      </div>
+      <div class="dock-right">
+        <span class="dock-indicator" aria-hidden="true"></span>
+        <span class="dock-indicator" aria-hidden="true"></span>
+        <span class="dock-indicator" id="nightIndicator" aria-hidden="true" style="display:none"></span>
+        <div id="controlToggle" aria-label="Control Center" role="button" tabindex="0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <span>CC</span>
+        </div>
+        <div id="launcherToggle" aria-label="Launchpad" role="button" tabindex="0" title="All Apps">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Apps</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- app drawer / search overlay -->
+  <div id="appDrawer" style="display:none" role="dialog" aria-label="All Apps">
+    <div class="appdrawer-background" id="appDrawerBg"></div>
+    <div class="appdrawer-sheet">
+      <div class="appdrawer-header">
+        <span class="appdrawer-title">All Apps</span>
+        <button id="appDrawerClose" class="appdrawer-close">&times;</button>
+      </div>
+      <div class="appdrawer-grid" id="appDrawerGrid"></div>
     </div>
   </div>
 
@@ -100,6 +218,11 @@
       </div>
     </div>
 
+    <div class="cc-status">Wallpaper</div>
+    <div class="cc-row cc-wallpapers" id="cc-wallpapers">
+      <!-- Generated in JS -->
+    </div>
+
     <div class="cc-status">System</div>
     <div class="cc-row">
       <span class="cc-label">Apps</span>
@@ -111,19 +234,9 @@
     </div>
   </div>
 
-  <!-- ─────────────── the desktop ─────────────── -->
-  <!-- One tap selects an icon, a second tap (or a double-click) opens it. -->
-  <div id="desktopApps">
-    <div class="appicon" id="crateIcon">
-      <img class="appicon-art" src="./crate.svg" alt="">
-      <p class="appicon-label">Crate</p>
-    </div>
-
-    <div class="appicon" id="terminalIcon">
-      <img class="appicon-art" src="./terminal.svg" alt="">
-      <p class="appicon-label">Terminal</p>
-    </div>
-  </div>
+  <!-- ─────────────── desktop ─────────────── -->
+  <!-- Apps now live in the dock; this area is intentionally empty. -->
+  <div id="desktopApps" style="display:none" aria-hidden="true"></div>
 
   <!-- ─────────────── Crate ─────────────── -->
   <div class="window" id="crate" style="top: calc(50% - 250px); left: calc(50% + 40px); display: none;">
@@ -162,6 +275,174 @@
         <span class="terminal-prompt">guest@lookout:~$</span>
         <input id="terminalInput" class="terminal-input" type="text" autocomplete="off" spellcheck="false"
           aria-label="Terminal command input">
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Contacts ─────────────── -->
+  <div class="window" id="contacts" style="top: calc(50% - 275px); left: calc(50% - 300px); width: 600px; height: 550px; display: none;">
+    <div class="windowheader" id="contactsheader">
+      <div class="closebutton" id="contactsclose"></div>
+      <p class="headertext">Contacts</p>
+      <div class="headerspacer"></div>
+    </div>
+    <div class="windowbody contacts-body">
+      <div class="contacts-toolbar">
+        <input type="text" id="contactsSearch" class="contacts-search" placeholder="Search contacts...">
+        <button id="contactsAdd" class="contacts-add-btn">+</button>
+      </div>
+      <div class="contacts-container">
+        <div id="contactsList" class="contacts-list"></div>
+        <div id="contactsDetail" class="contacts-detail">
+          <div class="contacts-empty-detail">Select a contact to view details</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Projects ─────────────── -->
+  <div class="window" id="projects" style="top: calc(50% - 275px); left: calc(50% - 300px); width: 600px; height: 550px; display: none;">
+    <div class="windowheader" id="projectsheader">
+      <div class="closebutton" id="projectsclose"></div>
+      <p class="headertext">Projects</p>
+      <div class="headerspacer"></div>
+    </div>
+    <div class="windowbody projects-body">
+      <div class="projects-toolbar">
+        <input type="text" id="projectsSearch" class="projects-search" placeholder="Search projects...">
+        <select id="projectsFilter" class="projects-filter">
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="completed">Completed</option>
+          <option value="planning">Planning</option>
+        </select>
+      </div>
+      <div id="projectsGrid" class="projects-grid"></div>
+      <div id="projectsDetail" class="projects-detail">
+        <div class="projects-empty-detail">Select a project to view details</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Weather ─────────────── -->
+  <div class="window" id="weather" style="top: calc(50% - 200px); left: calc(50% - 180px); width: 360px; height: 400px; display: none;">
+    <div class="windowheader" id="weatherheader">
+      <div class="closebutton" id="weatherclose"></div>
+      <p class="headertext">Weather</p>
+      <div class="headerspacer"></div>
+    </div>
+    <div class="windowbody weather-body">
+      <div class="weather-loading">Loading weather data...</div>
+      <div class="weather-current" style="display:none;">
+        <div class="weather-location" id="weatherLocation"></div>
+        <div class="weather-temp" id="weatherTemp"></div>
+        <div class="weather-condition" id="weatherCondition"></div>
+        <div class="weather-details">
+          <div class="weather-detail-item">
+            <span class="weather-detail-label">Feels Like</span>
+            <span class="weather-detail-value" id="weatherFeelsLike"></span>
+          </div>
+          <div class="weather-detail-item">
+            <span class="weather-detail-label">Humidity</span>
+            <span class="weather-detail-value" id="weatherHumidity"></span>
+          </div>
+          <div class="weather-detail-item">
+            <span class="weather-detail-label">Wind</span>
+            <span class="weather-detail-value" id="weatherWind"></span>
+          </div>
+        </div>
+        <div class="weather-forecast" id="weatherForecast"></div>
+      </div>
+      <div class="weather-error" style="display:none;">Unable to load weather data</div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Game (2048) ─────────────── -->
+  <div class="window" id="game" style="top: calc(50% - 220px); left: calc(50% - 180px); width: 360px; height: 440px; display: none;">
+    <div class="windowheader" id="gameheader">
+      <div class="closebutton" id="gameclose"></div>
+      <p class="headertext">2048</p>
+      <div class="headerspacer"></div>
+    </div>
+    <div class="windowbody game-body">
+      <div class="game-header">
+        <div class="game-score">Score: <span id="gameScore">0</span></div>
+        <button id="gameNewGame" class="game-new-btn">New Game</button>
+      </div>
+      <div id="gameBoard" class="game-board"></div>
+      <div id="gameMessage" class="game-message"></div>
+      <div class="game-instructions">Use arrow keys or swipe to play</div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Music Player ─────────────── -->
+  <div class="window" id="music" style="top: calc(50% - 250px); left: calc(50% - 300px); width: 600px; height: 500px; display: none;">
+    <div class="windowheader" id="musicheader">
+      <div class="closebutton" id="musicclose"></div>
+      <p class="headertext">Music</p>
+      <div class="headerspacer"></div>
+    </div>
+    <div class="windowbody music-body">
+      <div class="music-player">
+        <div class="music-now-playing">
+          <div class="music-artwork" id="musicArtwork">
+            <div class="music-artwork-placeholder">♪</div>
+          </div>
+          <div class="music-track-info">
+            <div class="music-track-title" id="musicTitle">No track selected</div>
+            <div class="music-track-artist" id="musicArtist">Add tracks to get started</div>
+          </div>
+        </div>
+        <div class="music-controls">
+          <button id="musicPrev" class="music-control-btn">⏮</button>
+          <button id="musicPlayPause" class="music-control-btn music-play-btn">▶</button>
+          <button id="musicNext" class="music-control-btn">⏭</button>
+        </div>
+        <div class="music-progress">
+          <span id="musicCurrentTime">0:00</span>
+          <input type="range" id="musicProgress" class="music-progress-bar" min="0" max="100" value="0">
+          <span id="musicDuration">0:00</span>
+        </div>
+        <div class="music-volume">
+          <span>🔊</span>
+          <input type="range" id="musicVolume" class="music-volume-bar" min="0" max="100" value="70">
+        </div>
+      </div>
+      <div class="music-library">
+        <div class="music-library-header">
+          <input type="text" id="musicSearch" class="music-search" placeholder="Search tracks...">
+          <button id="musicAddTrack" class="music-add-btn">+ Add Track</button>
+        </div>
+        <div id="musicPlaylist" class="music-playlist"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────────── Notes ─────────────── -->
+  <div class="window" id="notes" style="top: calc(50% - 275px); left: calc(50% - 350px); width: 700px; height: 550px; display: none;">
+    <div class="windowheader" id="notesheader">
+      <div class="closebutton" id="notesclose"></div>
+      <p class="headertext">Notes</p>
+      <div class="headerspacer"></div>
+    </div>
+    <div class="windowbody notes-body">
+      <div class="notes-sidebar">
+        <div class="notes-sidebar-header">
+          <button id="notesNew" class="notes-new-btn">+ New Note</button>
+          <input type="text" id="notesSearch" class="notes-search" placeholder="Search notes...">
+        </div>
+        <div id="notesList" class="notes-list"></div>
+      </div>
+      <div class="notes-editor">
+        <div id="notesEmpty" class="notes-empty">Select a note or create a new one</div>
+        <div id="notesEditor" class="notes-editor-content" style="display:none;">
+          <input type="text" id="notesTitle" class="notes-title-input" placeholder="Note title...">
+          <textarea id="notesBody" class="notes-body-input" placeholder="Start typing..."></textarea>
+          <div class="notes-footer">
+            <span id="notesTimestamp" class="notes-timestamp"></span>
+            <button id="notesDelete" class="notes-delete-btn">Delete</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
