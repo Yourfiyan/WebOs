@@ -2,10 +2,19 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "python-serve",
+      "name": "lookout-dev",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8081"],
-      "port": 8081
+      "runtimeArgs": ["-m", "http.server"],
+      "port": 8000,
+      "autoPort": true,
+      "url": "http://localhost:8000"
+    },
+    {
+      "name": "lookout-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "import os; from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler; ThreadingHTTPServer(('', int(os.environ.get('PORT', '8000'))), SimpleHTTPRequestHandler).serve_forever()"],
+      "port": 8000,
+      "autoPort": true
     }
   ]
 }

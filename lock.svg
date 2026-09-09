@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="A secure padlock">
+  <defs>
+    <linearGradient id="lockgrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9ca3af" />
+      <stop offset="1" stop-color="#4b5563" />
+    </linearGradient>
+  </defs>
+  <rect x="18" y="28" width="28" height="24" rx="4" fill="url(#lockgrad)" stroke="#0B1B2B" stroke-width="1.5" />
+  <path d="M 22 28 V 20 C 22 14.477 26.477 10 32 10 C 37.523 10 42 14.477 42 20 V 28" fill="none" stroke="#9ca3af" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="32" cy="40" r="3" fill="#0B1B2B" />
+  <path d="M 32 43 V 47" fill="none" stroke="#0B1B2B" stroke-width="2" stroke-linecap="round" />
+</svg>
