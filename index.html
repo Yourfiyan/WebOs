@@ -297,6 +297,36 @@
           <div class="contacts-empty-detail">Select a contact to view details</div>
         </div>
       </div>
+      <!-- Contact Create/Edit Form Overlay -->
+      <div id="contactsFormOverlay" class="contact-form-overlay" style="display:none;">
+        <div class="contact-form">
+          <div id="contactFormTitle" class="contact-form-title">New Contact</div>
+          <div class="contact-form-group">
+            <label for="contactInputName">Full Name</label>
+            <input type="text" id="contactInputName" placeholder="e.g. Alan Turing" required>
+          </div>
+          <div class="contact-form-group">
+            <label for="contactInputPhone">Phone</label>
+            <input type="text" id="contactInputPhone" placeholder="e.g. +44 1625 522000">
+          </div>
+          <div class="contact-form-group">
+            <label for="contactInputEmail">Email</label>
+            <input type="email" id="contactInputEmail" placeholder="e.g. alan@bletchley.ac.uk">
+          </div>
+          <div class="contact-form-group">
+            <label for="contactInputLocation">Location</label>
+            <input type="text" id="contactInputLocation" placeholder="e.g. Wilmslow, UK">
+          </div>
+          <div class="contact-form-group">
+            <label for="contactInputNotes">Notes</label>
+            <textarea id="contactInputNotes" placeholder="Additional notes or bio..."></textarea>
+          </div>
+          <div class="contact-form-buttons">
+            <button id="contactFormCancel" class="contact-form-cancel" type="button">Cancel</button>
+            <button id="contactFormSave" class="contact-form-save" type="button">Save Contact</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -414,6 +444,32 @@
           <button id="musicAddTrack" class="music-add-btn">+ Add Track</button>
         </div>
         <div id="musicPlaylist" class="music-playlist"></div>
+      </div>
+      <!-- Music Add Track Form Overlay -->
+      <div id="musicFormOverlay" class="contact-form-overlay" style="display:none;">
+        <div class="contact-form">
+          <div class="contact-form-title">Add New Track</div>
+          <div class="contact-form-group">
+            <label for="musicInputTitle">Track Title</label>
+            <input type="text" id="musicInputTitle" placeholder="e.g. Midnight City" required>
+          </div>
+          <div class="contact-form-group">
+            <label for="musicInputArtist">Artist</label>
+            <input type="text" id="musicInputArtist" placeholder="e.g. M83">
+          </div>
+          <div class="contact-form-group">
+            <label for="musicInputDuration">Duration (seconds)</label>
+            <input type="number" id="musicInputDuration" placeholder="e.g. 240" min="10" max="1800" value="210">
+          </div>
+          <div class="contact-form-group">
+            <label for="musicInputUrl">Audio URL (Optional)</label>
+            <input type="url" id="musicInputUrl" placeholder="https://... (or leave blank for synth)">
+          </div>
+          <div class="contact-form-buttons">
+            <button id="musicFormCancel" class="contact-form-cancel" type="button">Cancel</button>
+            <button id="musicFormSave" class="contact-form-save" type="button">Add to Playlist</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

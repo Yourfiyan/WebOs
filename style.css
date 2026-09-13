@@ -1853,6 +1853,9 @@ body.night .windowbody, body.night .headertext, body.night .sys-status, body.nig
   gap: 10px;
   overflow-y: auto;
   flex: 1;
+  min-height: 140px;
+  max-height: 220px;
+  margin-bottom: 10px;
 }
 
 .project-card {
@@ -2164,6 +2167,10 @@ body.night .windowbody, body.night .headertext, body.night .sys-status, body.nig
   font-weight: 700;
   transition: background-color 100ms ease, transform 100ms ease;
   user-select: none;
+}
+
+.game-tile.empty {
+  background: rgba(125, 211, 252, 0.05);
 }
 
 .game-tile-2 {
