@@ -134,9 +134,9 @@
           <img class="dock-app-icon" src="./lock.svg" alt="">
           <span class="dock-app-label">Lock</span>
         </div>
-        <div class="dock-app" id="contactsDock" data-app="contacts" title="Contacts">
-          <img class="dock-app-icon" src="./icons/contacts.svg" alt="">
-          <span class="dock-app-label">Contacts</span>
+        <div class="dock-app" id="calculatorDock" data-app="calculator" title="Calculator">
+          <img class="dock-app-icon" src="./icons/calculator.svg" alt="">
+          <span class="dock-app-label">Calculator</span>
         </div>
         <div class="dock-app" id="projectsDock" data-app="projects" title="Projects">
           <img class="dock-app-icon" src="./icons/projects.svg" alt="">
@@ -279,53 +279,47 @@
     </div>
   </div>
 
-  <!-- ─────────────── Contacts ─────────────── -->
-  <div class="window" id="contacts" style="top: calc(50% - 275px); left: calc(50% - 300px); width: 600px; height: 550px; display: none;">
-    <div class="windowheader" id="contactsheader">
-      <div class="closebutton" id="contactsclose"></div>
-      <p class="headertext">Contacts</p>
+  <!-- ─────────────── Calculator ─────────────── -->
+  <div class="window" id="calculator" style="top: calc(50% - 245px); left: calc(50% - 165px); width: 330px; height: 490px; display: none;">
+    <div class="windowheader" id="calculatorheader">
+      <div class="closebutton" id="calculatorclose"></div>
+      <p class="headertext">Calculator</p>
       <div class="headerspacer"></div>
     </div>
-    <div class="windowbody contacts-body">
-      <div class="contacts-toolbar">
-        <input type="text" id="contactsSearch" class="contacts-search" placeholder="Search contacts...">
-        <button id="contactsAdd" class="contacts-add-btn">+</button>
+    <div class="windowbody calculator-body">
+      <div class="calc-screen">
+        <div class="calc-history" id="calcHistory">&nbsp;</div>
+        <div class="calc-display" id="calcDisplay">0</div>
       </div>
-      <div class="contacts-container">
-        <div id="contactsList" class="contacts-list"></div>
-        <div id="contactsDetail" class="contacts-detail">
-          <div class="contacts-empty-detail">Select a contact to view details</div>
-        </div>
-      </div>
-      <!-- Contact Create/Edit Form Overlay -->
-      <div id="contactsFormOverlay" class="contact-form-overlay" style="display:none;">
-        <div class="contact-form">
-          <div id="contactFormTitle" class="contact-form-title">New Contact</div>
-          <div class="contact-form-group">
-            <label for="contactInputName">Full Name</label>
-            <input type="text" id="contactInputName" placeholder="e.g. Alan Turing" required>
-          </div>
-          <div class="contact-form-group">
-            <label for="contactInputPhone">Phone</label>
-            <input type="text" id="contactInputPhone" placeholder="e.g. +44 1625 522000">
-          </div>
-          <div class="contact-form-group">
-            <label for="contactInputEmail">Email</label>
-            <input type="email" id="contactInputEmail" placeholder="e.g. alan@bletchley.ac.uk">
-          </div>
-          <div class="contact-form-group">
-            <label for="contactInputLocation">Location</label>
-            <input type="text" id="contactInputLocation" placeholder="e.g. Wilmslow, UK">
-          </div>
-          <div class="contact-form-group">
-            <label for="contactInputNotes">Notes</label>
-            <textarea id="contactInputNotes" placeholder="Additional notes or bio..."></textarea>
-          </div>
-          <div class="contact-form-buttons">
-            <button id="contactFormCancel" class="contact-form-cancel" type="button">Cancel</button>
-            <button id="contactFormSave" class="contact-form-save" type="button">Save Contact</button>
-          </div>
-        </div>
+      <div class="calc-keypad">
+        <button class="calc-btn fn" data-action="clear" title="Clear (Esc)">AC</button>
+        <button class="calc-btn fn" data-action="sign" title="Toggle Sign (±)">±</button>
+        <button class="calc-btn fn" data-action="percent" title="Percent (%)">%</button>
+        <button class="calc-btn op" data-action="op" data-val="/" title="Divide (/)">÷</button>
+
+        <button class="calc-btn fn" data-action="sqrt" title="Square Root">√</button>
+        <button class="calc-btn fn" data-action="sqr" title="Square (x²)">x²</button>
+        <button class="calc-btn fn" data-action="recip" title="Reciprocal (1/x)">1/x</button>
+        <button class="calc-btn op" data-action="op" data-val="*" title="Multiply (*)">×</button>
+
+        <button class="calc-btn num" data-val="7">7</button>
+        <button class="calc-btn num" data-val="8">8</button>
+        <button class="calc-btn num" data-val="9">9</button>
+        <button class="calc-btn op" data-action="op" data-val="-" title="Subtract (-)">−</button>
+
+        <button class="calc-btn num" data-val="4">4</button>
+        <button class="calc-btn num" data-val="5">5</button>
+        <button class="calc-btn num" data-val="6">6</button>
+        <button class="calc-btn op" data-action="op" data-val="+" title="Add (+)">+</button>
+
+        <button class="calc-btn num" data-val="1">1</button>
+        <button class="calc-btn num" data-val="2">2</button>
+        <button class="calc-btn num" data-val="3">3</button>
+        <button class="calc-btn fn" data-action="backspace" title="Backspace (⌫)">⌫</button>
+
+        <button class="calc-btn num zero" data-val="0">0</button>
+        <button class="calc-btn num" data-val=".">.</button>
+        <button class="calc-btn eq" data-action="equals" title="Calculate (=)">=</button>
       </div>
     </div>
   </div>
@@ -446,28 +440,28 @@
         <div id="musicPlaylist" class="music-playlist"></div>
       </div>
       <!-- Music Add Track Form Overlay -->
-      <div id="musicFormOverlay" class="contact-form-overlay" style="display:none;">
-        <div class="contact-form">
-          <div class="contact-form-title">Add New Track</div>
-          <div class="contact-form-group">
+      <div id="musicFormOverlay" class="modal-form-overlay" style="display:none;">
+        <div class="modal-form">
+          <div class="modal-form-title">Add New Track</div>
+          <div class="modal-form-group">
             <label for="musicInputTitle">Track Title</label>
             <input type="text" id="musicInputTitle" placeholder="e.g. Midnight City" required>
           </div>
-          <div class="contact-form-group">
+          <div class="modal-form-group">
             <label for="musicInputArtist">Artist</label>
             <input type="text" id="musicInputArtist" placeholder="e.g. M83">
           </div>
-          <div class="contact-form-group">
+          <div class="modal-form-group">
             <label for="musicInputDuration">Duration (seconds)</label>
             <input type="number" id="musicInputDuration" placeholder="e.g. 240" min="10" max="1800" value="210">
           </div>
-          <div class="contact-form-group">
+          <div class="modal-form-group">
             <label for="musicInputUrl">Audio URL (Optional)</label>
             <input type="url" id="musicInputUrl" placeholder="https://... (or leave blank for synth)">
           </div>
-          <div class="contact-form-buttons">
-            <button id="musicFormCancel" class="contact-form-cancel" type="button">Cancel</button>
-            <button id="musicFormSave" class="contact-form-save" type="button">Add to Playlist</button>
+          <div class="modal-form-buttons">
+            <button id="musicFormCancel" class="modal-form-cancel" type="button">Cancel</button>
+            <button id="musicFormSave" class="modal-form-save" type="button">Add to Playlist</button>
           </div>
         </div>
       </div>
