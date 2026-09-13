@@ -285,6 +285,10 @@ function toggleControlCenter() {
 
   if (ccOpen) {
     cc.style.display = "block";
+    var ccAppCountEl = document.getElementById("cc-appcount");
+    if (ccAppCountEl && typeof apps !== "undefined") {
+      ccAppCountEl.textContent = Object.keys(apps).length + " installed";
+    }
     lookoutState.apply();
   } else {
     cc.style.display = "none";
@@ -1597,6 +1601,1849 @@ terminalInput.addEventListener("keydown", function (e) {
 
 
 /* ============================================================
+   9. Contacts App
+   ============================================================ */
+
+var contactsManager = {
+  _storageKey: "lookout-contacts",
+  contacts: [],
+  selectedId: null,
+
+  defaultContacts: [
+    {
+      id: "c1",
+      name: "Syed Sufiyan Hamza",
+      phone: "+92 300 1234567",
+      email: "contact@yourfiyan.dev",
+      location: "Karachi, PK",
+      notes: "Lead Architect of Lookout OS. Crafting fluid web desktop experiences."
+    },
+    {
+      id: "c2",
+      name: "Ada Lovelace",
+      phone: "+44 20 7946 0912",
+      email: "ada@analytical.engine",
+      location: "London, UK",
+      notes: "First computer programmer. Wrote the first algorithm intended to be executed by a machine."
+    },
+    {
+      id: "c3",
+      name: "Alan Turing",
+      phone: "+44 1625 522000",
+      email: "alan@bletchley.ac.uk",
+      location: "Wilmslow, UK",
+      notes: "Father of theoretical computer science, cryptography, and artificial intelligence."
+    },
+    {
+      id: "c4",
+      name: "Margaret Hamilton",
+      phone: "+1 617 253 1000",
+      email: "margaret@mit.edu",
+      location: "Cambridge, MA",
+      notes: "Director of Software Engineering Division at MIT Instrumentation Lab; developed Apollo 11 flight software."
+    },
+    {
+      id: "c5",
+      name: "Linus Torvalds",
+      phone: "+1 503 555 0199",
+      email: "linus@kernel.org",
+      location: "Portland, OR",
+      notes: "Creator and principal developer of the Linux kernel and Git revision control."
+    }
+  ],
+
+  load: function () {
+    try {
+      var saved = localStorage.getItem(this._storageKey);
+      if (saved) {
+        this.contacts = JSON.parse(saved);
+      } else {
+        this.contacts = this.defaultContacts.slice();
+        this.save();
+      }
+    } catch (e) {
+      this.contacts = this.defaultContacts.slice();
+    }
+    if (!this.selectedId && this.contacts.length > 0) {
+      this.selectedId = this.contacts[0].id;
+    }
+  },
+
+  save: function () {
+    try {
+      localStorage.setItem(this._storageKey, JSON.stringify(this.contacts));
+    } catch (e) {}
+  },
+
+  getInitials: function (name) {
+    if (!name) return "?";
+    var parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  },
+
+  getContact: function (id) {
+    for (var i = 0; i < this.contacts.length; i++) {
+      if (this.contacts[i].id === id) return this.contacts[i];
+    }
+    return null;
+  },
+
+  renderList: function (filterQuery) {
+    var listEl = document.getElementById("contactsList");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+
+    var q = (filterQuery || "").toLowerCase().trim();
+    var filtered = this.contacts.filter(function (c) {
+      if (!q) return true;
+      var nameMatch = c.name && c.name.toLowerCase().indexOf(q) !== -1;
+      var phoneMatch = c.phone && c.phone.toLowerCase().indexOf(q) !== -1;
+      var emailMatch = c.email && c.email.toLowerCase().indexOf(q) !== -1;
+      var notesMatch = c.notes && c.notes.toLowerCase().indexOf(q) !== -1;
+      return nameMatch || phoneMatch || emailMatch || notesMatch;
+    });
+
+    if (filtered.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "contacts-empty-detail";
+      empty.textContent = q ? "No contacts matching search" : "No contacts yet";
+      listEl.appendChild(empty);
+      return;
+    }
+
+    filtered.forEach(function (c) {
+      var card = document.createElement("div");
+      card.className = "contact-card" + (c.id === contactsManager.selectedId ? " selected" : "");
+      card.setAttribute("data-id", c.id);
+
+      var avatar = document.createElement("div");
+      avatar.className = "contact-avatar";
+      avatar.textContent = contactsManager.getInitials(c.name);
+
+      var info = document.createElement("div");
+      info.style.flex = "1";
+      info.style.minWidth = "0";
+
+      var nameEl = document.createElement("div");
+      nameEl.className = "contact-card-name";
+      nameEl.textContent = c.name;
+
+      var phoneEl = document.createElement("div");
+      phoneEl.className = "contact-card-phone";
+      phoneEl.textContent = c.phone || c.email || "";
+
+      info.appendChild(nameEl);
+      info.appendChild(phoneEl);
+
+      card.style.display = "flex";
+      card.style.alignItems = "center";
+      card.style.gap = "10px";
+      card.appendChild(avatar);
+      card.appendChild(info);
+
+      card.addEventListener("click", function () {
+        contactsManager.selectContact(c.id);
+      });
+
+      listEl.appendChild(card);
+    });
+  },
+
+  renderDetail: function () {
+    var detailEl = document.getElementById("contactsDetail");
+    if (!detailEl) return;
+    detailEl.innerHTML = "";
+
+    var contact = this.getContact(this.selectedId);
+    if (!contact) {
+      detailEl.innerHTML = '<div class="contacts-empty-detail">Select a contact to view details</div>';
+      return;
+    }
+
+    // Header
+    var header = document.createElement("div");
+    header.className = "contact-detail-header";
+
+    var avatar = document.createElement("div");
+    avatar.className = "contact-avatar";
+    avatar.style.width = "48px";
+    avatar.style.height = "48px";
+    avatar.style.fontSize = "20px";
+    avatar.textContent = this.getInitials(contact.name);
+
+    var nameWrap = document.createElement("div");
+    var nameEl = document.createElement("div");
+    nameEl.className = "contact-detail-name";
+    nameEl.textContent = contact.name;
+    nameWrap.appendChild(nameEl);
+
+    header.appendChild(avatar);
+    header.appendChild(nameWrap);
+    detailEl.appendChild(header);
+
+    // Sections helper
+    function addSection(label, value) {
+      if (!value) return;
+      var sec = document.createElement("div");
+      sec.className = "contact-detail-section";
+      sec.innerHTML = '<div class="contact-detail-label">' + label + '</div><div class="contact-detail-value">' + value + '</div>';
+      detailEl.appendChild(sec);
+    }
+
+    addSection("Phone", contact.phone);
+    addSection("Email", contact.email);
+    addSection("Location", contact.location);
+    addSection("Notes", contact.notes);
+
+    // Actions (Edit / Delete)
+    var actions = document.createElement("div");
+    actions.className = "contact-detail-actions";
+
+    var editBtn = document.createElement("button");
+    editBtn.className = "contact-action-btn";
+    editBtn.textContent = "Edit Contact";
+    editBtn.addEventListener("click", function () {
+      contactsManager.openForm(contact);
+    });
+
+    var delBtn = document.createElement("button");
+    delBtn.className = "contact-action-btn danger";
+    delBtn.textContent = "Delete";
+    delBtn.addEventListener("click", function () {
+      if (confirm("Delete contact \"" + contact.name + "\"?")) {
+        contactsManager.deleteContact(contact.id);
+      }
+    });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    detailEl.appendChild(actions);
+  },
+
+  selectContact: function (id) {
+    this.selectedId = id;
+    var searchEl = document.getElementById("contactsSearch");
+    this.renderList(searchEl ? searchEl.value : "");
+    this.renderDetail();
+  },
+
+  deleteContact: function (id) {
+    this.contacts = this.contacts.filter(function (c) { return c.id !== id; });
+    this.save();
+    if (this.selectedId === id) {
+      this.selectedId = this.contacts.length > 0 ? this.contacts[0].id : null;
+    }
+    var searchEl = document.getElementById("contactsSearch");
+    this.renderList(searchEl ? searchEl.value : "");
+    this.renderDetail();
+  },
+
+  currentEditingId: null,
+
+  openForm: function (contact) {
+    var overlay = document.getElementById("contactsFormOverlay");
+    if (!overlay) return;
+
+    this.currentEditingId = contact ? contact.id : null;
+    var titleEl = document.getElementById("contactFormTitle");
+    if (titleEl) {
+      titleEl.textContent = contact ? "Edit Contact" : "New Contact";
+    }
+
+    document.getElementById("contactInputName").value = contact ? contact.name : "";
+    document.getElementById("contactInputPhone").value = contact ? contact.phone || "" : "";
+    document.getElementById("contactInputEmail").value = contact ? contact.email || "" : "";
+    document.getElementById("contactInputLocation").value = contact ? contact.location || "" : "";
+    document.getElementById("contactInputNotes").value = contact ? contact.notes || "" : "";
+
+    overlay.style.display = "flex";
+    document.getElementById("contactInputName").focus();
+  },
+
+  closeForm: function () {
+    var overlay = document.getElementById("contactsFormOverlay");
+    if (overlay) overlay.style.display = "none";
+    this.currentEditingId = null;
+  },
+
+  saveForm: function () {
+    var name = document.getElementById("contactInputName").value.trim();
+    if (!name) {
+      alert("Please provide a contact name.");
+      return;
+    }
+
+    var phone = document.getElementById("contactInputPhone").value.trim();
+    var email = document.getElementById("contactInputEmail").value.trim();
+    var location = document.getElementById("contactInputLocation").value.trim();
+    var notes = document.getElementById("contactInputNotes").value.trim();
+
+    if (this.currentEditingId) {
+      // Update
+      var existing = this.getContact(this.currentEditingId);
+      if (existing) {
+        existing.name = name;
+        existing.phone = phone;
+        existing.email = email;
+        existing.location = location;
+        existing.notes = notes;
+      }
+    } else {
+      // New
+      var newContact = {
+        id: "c_" + Date.now(),
+        name: name,
+        phone: phone,
+        email: email,
+        location: location,
+        notes: notes
+      };
+      this.contacts.unshift(newContact);
+      this.selectedId = newContact.id;
+    }
+
+    this.save();
+    this.closeForm();
+    var searchEl = document.getElementById("contactsSearch");
+    this.renderList(searchEl ? searchEl.value : "");
+    this.renderDetail();
+  },
+
+  init: function () {
+    this.load();
+    this.renderList();
+    this.renderDetail();
+
+    var searchEl = document.getElementById("contactsSearch");
+    if (searchEl) {
+      searchEl.addEventListener("input", function () {
+        contactsManager.renderList(this.value);
+      });
+    }
+
+    var addBtn = document.getElementById("contactsAdd");
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        contactsManager.openForm(null);
+      });
+    }
+
+    var cancelBtn = document.getElementById("contactFormCancel");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", function () {
+        contactsManager.closeForm();
+      });
+    }
+
+    var saveBtn = document.getElementById("contactFormSave");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        contactsManager.saveForm();
+      });
+    }
+  }
+};
+
+contactsManager.init();
+
+
+/* ============================================================
+   10. Projects App
+   ============================================================ */
+
+var projectsManager = {
+  _storageKey: "lookout-projects",
+  projects: [],
+  selectedId: null,
+
+  defaultProjects: [
+    {
+      id: "p1",
+      title: "Lookout OS",
+      category: "active",
+      status: "active",
+      desc: "A personal operating system in the browser with glassmorphism, responsive windows, dock, iOS-style lock screen, and built-in apps.",
+      tags: ["JavaScript", "CSS3", "WebOS", "Vanilla"],
+      links: [
+        { label: "GitHub", url: "https://github.com/Yourfiyan/WebOs" },
+        { label: "Live Demo", url: "https://yourfiyan.is-a.dev/WebOs/" }
+      ]
+    },
+    {
+      id: "p2",
+      title: "Crate Audio Lounge",
+      category: "completed",
+      status: "completed",
+      desc: "Interactive vinyl record turntable shelf with spinning sleeve animations and curated track information.",
+      tags: ["Audio", "UI", "Music", "Animation"],
+      links: [
+        { label: "Open Crate", action: "open:crate" }
+      ]
+    },
+    {
+      id: "p3",
+      title: "RAG Architecture Explainer",
+      category: "completed",
+      status: "completed",
+      desc: "Visual architecture breakdown and deep dive into Retrieval-Augmented Generation systems and vector retrieval.",
+      tags: ["AI", "Architecture", "RAG", "LLM"],
+      links: [
+        { label: "View PDF", url: "./rag-architecture-explainer.pdf" }
+      ]
+    },
+    {
+      id: "p4",
+      title: "Neural Playground",
+      category: "active",
+      status: "active",
+      desc: "Interactive browser-based neural network visualizer simulating feed-forward networks, activations, and real-time decision boundaries.",
+      tags: ["Machine Learning", "Canvas", "WebGL"],
+      links: [
+        { label: "GitHub", url: "https://github.com/Yourfiyan" }
+      ]
+    },
+    {
+      id: "p5",
+      title: "HyperText Terminal",
+      category: "completed",
+      status: "completed",
+      desc: "Lookout OS built-in virtual shell environment with devlog reader, filesystem navigation, and OS state controls.",
+      tags: ["CLI", "Terminal", "Glassmorphism"],
+      links: [
+        { label: "Launch Terminal", action: "open:terminal" }
+      ]
+    },
+    {
+      id: "p6",
+      title: "Ambient Weather Engine",
+      category: "active",
+      status: "active",
+      desc: "Live meteorological forecast engine with weather condition tracking, multi-day forecasting, and fallback telemetry.",
+      tags: ["API", "Weather", "Telemetry"],
+      links: [
+        { label: "Open Weather", action: "open:weather" }
+      ]
+    },
+    {
+      id: "p7",
+      title: "P2P WebOS Cloud Sync",
+      category: "planning",
+      status: "planning",
+      desc: "Decentralized state synchronization across desktop instances via WebRTC peer data channels and local CRDTs.",
+      tags: ["WebRTC", "P2P", "CRDT", "Sync"],
+      links: [
+        { label: "Design Doc", url: "https://github.com/Yourfiyan" }
+      ]
+    }
+  ],
+
+  load: function () {
+    try {
+      var saved = localStorage.getItem(this._storageKey);
+      if (saved) {
+        this.projects = JSON.parse(saved);
+      } else {
+        this.projects = this.defaultProjects.slice();
+        this.save();
+      }
+    } catch (e) {
+      this.projects = this.defaultProjects.slice();
+    }
+    if (!this.selectedId && this.projects.length > 0) {
+      this.selectedId = this.projects[0].id;
+    }
+  },
+
+  save: function () {
+    try {
+      localStorage.setItem(this._storageKey, JSON.stringify(this.projects));
+    } catch (e) {}
+  },
+
+  getProject: function (id) {
+    for (var i = 0; i < this.projects.length; i++) {
+      if (this.projects[i].id === id) return this.projects[i];
+    }
+    return null;
+  },
+
+  renderGrid: function () {
+    var gridEl = document.getElementById("projectsGrid");
+    if (!gridEl) return;
+    gridEl.innerHTML = "";
+
+    var searchEl = document.getElementById("projectsSearch");
+    var filterEl = document.getElementById("projectsFilter");
+
+    var q = searchEl ? searchEl.value.toLowerCase().trim() : "";
+    var cat = filterEl ? filterEl.value : "all";
+
+    var filtered = this.projects.filter(function (p) {
+      if (cat !== "all" && p.category !== cat) return false;
+      if (!q) return true;
+      var titleMatch = p.title && p.title.toLowerCase().indexOf(q) !== -1;
+      var descMatch = p.desc && p.desc.toLowerCase().indexOf(q) !== -1;
+      var tagsMatch = p.tags && p.tags.some(function (t) { return t.toLowerCase().indexOf(q) !== -1; });
+      return titleMatch || descMatch || tagsMatch;
+    });
+
+    if (filtered.length === 0) {
+      gridEl.innerHTML = '<div class="projects-empty-detail" style="grid-column: 1 / -1;">No matching projects found</div>';
+      return;
+    }
+
+    filtered.forEach(function (p) {
+      var card = document.createElement("div");
+      card.className = "project-card" + (p.id === projectsManager.selectedId ? " selected" : "");
+      card.setAttribute("data-id", p.id);
+
+      var title = document.createElement("div");
+      title.className = "project-card-title";
+      title.textContent = p.title;
+
+      var status = document.createElement("span");
+      status.className = "project-status " + p.status;
+      status.textContent = p.status.toUpperCase();
+
+      var desc = document.createElement("div");
+      desc.className = "project-card-desc";
+      desc.textContent = p.desc;
+
+      var tags = document.createElement("div");
+      tags.className = "project-card-tags";
+      if (p.tags) {
+        p.tags.forEach(function (t) {
+          var tag = document.createElement("span");
+          tag.className = "project-tag";
+          tag.textContent = t;
+          tags.appendChild(tag);
+        });
+      }
+
+      card.appendChild(title);
+      card.appendChild(status);
+      card.appendChild(desc);
+      card.appendChild(tags);
+
+      card.addEventListener("click", function () {
+        projectsManager.selectProject(p.id);
+      });
+
+      gridEl.appendChild(card);
+    });
+  },
+
+  renderDetail: function () {
+    var detailEl = document.getElementById("projectsDetail");
+    if (!detailEl) return;
+    detailEl.innerHTML = "";
+
+    var project = this.getProject(this.selectedId);
+    if (!project) {
+      detailEl.innerHTML = '<div class="projects-empty-detail">Select a project to view details</div>';
+      return;
+    }
+
+    var title = document.createElement("div");
+    title.className = "project-detail-title";
+    title.textContent = project.title;
+
+    var status = document.createElement("div");
+    status.className = "project-status " + project.status;
+    status.style.marginBottom = "8px";
+    status.textContent = "STATUS: " + project.status.toUpperCase();
+
+    var desc = document.createElement("div");
+    desc.className = "project-detail-desc";
+    desc.textContent = project.desc;
+
+    var tags = document.createElement("div");
+    tags.className = "project-detail-tags";
+    if (project.tags) {
+      project.tags.forEach(function (t) {
+        var tag = document.createElement("span");
+        tag.className = "project-tag";
+        tag.textContent = t;
+        tags.appendChild(tag);
+      });
+    }
+
+    var links = document.createElement("div");
+    links.className = "project-detail-links";
+    if (project.links && project.links.length > 0) {
+      project.links.forEach(function (l) {
+        var link = document.createElement("a");
+        link.className = "project-link";
+        link.textContent = l.label;
+        if (l.action && l.action.indexOf("open:") === 0) {
+          var appTarget = l.action.slice(5);
+          link.href = "#";
+          link.addEventListener("click", function (e) {
+            e.preventDefault();
+            if (apps[appTarget]) openWindow(apps[appTarget]);
+          });
+        } else if (l.url) {
+          link.href = l.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+        }
+        links.appendChild(link);
+      });
+    }
+
+    var actions = document.createElement("div");
+    actions.className = "project-detail-actions";
+
+    var cycleBtn = document.createElement("button");
+    cycleBtn.className = "project-link";
+    cycleBtn.style.background = "rgba(242, 182, 90, 0.15)";
+    cycleBtn.style.borderColor = "rgba(242, 182, 90, 0.4)";
+    cycleBtn.style.color = "var(--theme-color, #F2B65A)";
+    cycleBtn.textContent = "Change Status (" + project.status + ")";
+    cycleBtn.addEventListener("click", function () {
+      var nextMap = { active: "completed", completed: "planning", planning: "active" };
+      project.status = nextMap[project.status] || "active";
+      project.category = project.status;
+      projectsManager.save();
+      projectsManager.renderGrid();
+      projectsManager.renderDetail();
+    });
+    actions.appendChild(cycleBtn);
+
+    detailEl.appendChild(title);
+    detailEl.appendChild(status);
+    detailEl.appendChild(desc);
+    detailEl.appendChild(tags);
+    detailEl.appendChild(links);
+    detailEl.appendChild(actions);
+  },
+
+  selectProject: function (id) {
+    this.selectedId = id;
+    this.renderGrid();
+    this.renderDetail();
+  },
+
+  init: function () {
+    this.load();
+    this.renderGrid();
+    this.renderDetail();
+
+    var searchEl = document.getElementById("projectsSearch");
+    if (searchEl) {
+      searchEl.addEventListener("input", function () {
+        projectsManager.renderGrid();
+      });
+    }
+
+    var filterEl = document.getElementById("projectsFilter");
+    if (filterEl) {
+      filterEl.addEventListener("change", function () {
+        projectsManager.renderGrid();
+      });
+    }
+  }
+};
+
+projectsManager.init();
+
+
+/* ============================================================
+   11. Weather App
+   ============================================================ */
+
+var weatherManager = {
+  _storageKey: "lookout-weather-cache",
+  isLoading: false,
+
+  fallbackData: {
+    location: "Lookout Tower · Horizon Peak",
+    temp: "23°C",
+    condition: "Partly Cloudy ⛅",
+    feelsLike: "24°C",
+    humidity: "58%",
+    wind: "14 km/h",
+    forecast: [
+      { day: "Today", icon: "⛅", temp: "24° / 17°" },
+      { day: "Tue",   icon: "☀️", temp: "26° / 18°" },
+      { day: "Wed",   icon: "🌦️", temp: "21° / 16°" },
+      { day: "Thu",   icon: "⛅", temp: "23° / 17°" },
+      { day: "Fri",   icon: "☀️", temp: "27° / 19°" }
+    ]
+  },
+
+  wmoCodeMap: function (code) {
+    if (code === 0) return { text: "Clear Sky", icon: "☀️" };
+    if (code >= 1 && code <= 3) return { text: "Partly Cloudy", icon: "⛅" };
+    if (code === 45 || code === 48) return { text: "Foggy", icon: "🌫️" };
+    if (code >= 51 && code <= 55) return { text: "Light Drizzle", icon: "🌧️" };
+    if (code >= 61 && code <= 65) return { text: "Rain", icon: "🌧️" };
+    if (code >= 71 && code <= 77) return { text: "Snow", icon: "❄️" };
+    if (code >= 80 && code <= 82) return { text: "Rain Showers", icon: "🌦️" };
+    if (code >= 95 && code <= 99) return { text: "Thunderstorm", icon: "⛈️" };
+    return { text: "Mild & Breezy", icon: "⛅" };
+  },
+
+  render: function (data) {
+    var loadingEl = document.querySelector(".weather-loading");
+    var currentEl = document.querySelector(".weather-current");
+    var errorEl = document.querySelector(".weather-error");
+
+    if (errorEl) errorEl.style.display = "none";
+    if (loadingEl) loadingEl.style.display = "none";
+    if (currentEl) currentEl.style.display = "flex";
+
+    var locEl = document.getElementById("weatherLocation");
+    if (locEl) {
+      locEl.textContent = data.location;
+      locEl.title = "Click to refresh weather";
+      locEl.style.cursor = "pointer";
+    }
+
+    var tempEl = document.getElementById("weatherTemp");
+    if (tempEl) tempEl.textContent = data.temp;
+
+    var condEl = document.getElementById("weatherCondition");
+    if (condEl) condEl.textContent = data.condition;
+
+    var feelsEl = document.getElementById("weatherFeelsLike");
+    if (feelsEl) feelsEl.textContent = data.feelsLike;
+
+    var humEl = document.getElementById("weatherHumidity");
+    if (humEl) humEl.textContent = data.humidity;
+
+    var windEl = document.getElementById("weatherWind");
+    if (windEl) windEl.textContent = data.wind;
+
+    var forecastEl = document.getElementById("weatherForecast");
+    if (forecastEl && data.forecast) {
+      forecastEl.innerHTML = "";
+      data.forecast.forEach(function (f) {
+        var dayCard = document.createElement("div");
+        dayCard.className = "weather-forecast-day";
+        dayCard.innerHTML =
+          '<div class="weather-forecast-day-name">' + f.day + '</div>' +
+          '<div class="weather-forecast-icon">' + f.icon + '</div>' +
+          '<div class="weather-forecast-temp">' + f.temp + '</div>';
+        forecastEl.appendChild(dayCard);
+      });
+    }
+
+    // Also update any Lock Screen weather widget live
+    var lsWeatherVal = document.querySelector('[data-wid] .ls-widget-value');
+    var lsWeatherSmall = document.querySelector('[data-wid] .ls-widget-small');
+    if (lsWeatherVal && lsWeatherVal.previousElementSibling && lsWeatherVal.previousElementSibling.textContent === "WEATHER") {
+      lsWeatherVal.textContent = data.temp;
+      if (lsWeatherSmall) lsWeatherSmall.textContent = data.condition;
+    }
+  },
+
+  fetchWeather: function () {
+    if (this.isLoading) return;
+    this.isLoading = true;
+
+    var loadingEl = document.querySelector(".weather-loading");
+    var currentEl = document.querySelector(".weather-current");
+    var errorEl = document.querySelector(".weather-error");
+
+    // Check cached data first to render immediately if available
+    var cached = null;
+    try {
+      var cStr = localStorage.getItem(this._storageKey);
+      if (cStr) cached = JSON.parse(cStr);
+    } catch (e) {}
+
+    if (cached) {
+      this.render(cached);
+    }
+
+    var self = this;
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 3000) : null;
+
+    var url = "https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto";
+
+    fetch(url, { signal: controller ? controller.signal : undefined })
+      .then(function (res) {
+        if (!res.ok) throw new Error("Weather HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (json) {
+        if (timeoutId) clearTimeout(timeoutId);
+        self.isLoading = false;
+
+        var curr = json.current || {};
+        var condInfo = self.wmoCodeMap(curr.weather_code);
+        var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+        var forecast = [];
+        if (json.daily && json.daily.time) {
+          for (var i = 0; i < Math.min(5, json.daily.time.length); i++) {
+            var d = new Date(json.daily.time[i]);
+            var dayLabel = i === 0 ? "Today" : days[d.getDay()];
+            var dCode = json.daily.weather_code[i];
+            var dInfo = self.wmoCodeMap(dCode);
+            var maxT = Math.round(json.daily.temperature_2m_max[i]);
+            var minT = Math.round(json.daily.temperature_2m_min[i]);
+            forecast.push({
+              day: dayLabel,
+              icon: dInfo.icon,
+              temp: maxT + "° / " + minT + "°"
+            });
+          }
+        }
+
+        var liveData = {
+          location: "Lookout Tower · Karachi",
+          temp: Math.round(curr.temperature_2m) + "°C",
+          condition: condInfo.text + " " + condInfo.icon,
+          feelsLike: Math.round(curr.apparent_temperature) + "°C",
+          humidity: Math.round(curr.relative_humidity_2m) + "%",
+          wind: Math.round(curr.wind_speed_10m) + " km/h",
+          forecast: forecast.length > 0 ? forecast : self.fallbackData.forecast
+        };
+
+        try {
+          localStorage.setItem(self._storageKey, JSON.stringify(liveData));
+        } catch (e) {}
+
+        self.render(liveData);
+      })
+      .catch(function () {
+        if (timeoutId) clearTimeout(timeoutId);
+        self.isLoading = false;
+        // Fallback to cache or sensible client-side telemetry demo
+        var fallback = cached || self.fallbackData;
+        self.render(fallback);
+      });
+  },
+
+  init: function () {
+    var self = this;
+    this.fetchWeather();
+
+    var locEl = document.getElementById("weatherLocation");
+    if (locEl) {
+      locEl.addEventListener("click", function () {
+        self.fetchWeather();
+      });
+    }
+  }
+};
+
+weatherManager.init();
+
+
+/* ============================================================
+   12. 2048 Game App
+   ============================================================ */
+
+var game2048 = {
+  _storageKeyBest: "lookout-2048-best",
+  grid: [
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+  ],
+  score: 0,
+  bestScore: 0,
+  won: false,
+  over: false,
+
+  loadBest: function () {
+    try {
+      var s = localStorage.getItem(this._storageKeyBest);
+      if (s) this.bestScore = parseInt(s, 10) || 0;
+    } catch (e) {}
+  },
+
+  saveBest: function () {
+    try {
+      localStorage.setItem(this._storageKeyBest, String(this.bestScore));
+    } catch (e) {}
+  },
+
+  init: function () {
+    this.loadBest();
+    this.resetGame();
+
+    var newBtn = document.getElementById("gameNewGame");
+    if (newBtn) {
+      newBtn.addEventListener("click", function () {
+        game2048.resetGame();
+      });
+    }
+
+    // Keyboard controls
+    window.addEventListener("keydown", function (e) {
+      var gameWin = apps.game;
+      if (!gameWin || gameWin.style.display === "none") return;
+
+      var moved = false;
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+        e.preventDefault();
+        moved = game2048.move("left");
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+        e.preventDefault();
+        moved = game2048.move("right");
+      } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
+        e.preventDefault();
+        moved = game2048.move("up");
+      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        moved = game2048.move("down");
+      }
+    });
+
+    // Touch / Swipe controls on game board
+    var board = document.getElementById("gameBoard");
+    if (board) {
+      var touchStartX = 0;
+      var touchStartY = 0;
+
+      board.addEventListener("touchstart", function (e) {
+        if (e.touches.length > 0) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      board.addEventListener("touchend", function (e) {
+        if (e.changedTouches.length > 0) {
+          var deltaX = e.changedTouches[0].clientX - touchStartX;
+          var deltaY = e.changedTouches[0].clientY - touchStartY;
+          var absX = Math.abs(deltaX);
+          var absY = Math.abs(deltaY);
+
+          if (Math.max(absX, absY) > 25) {
+            if (absX > absY) {
+              if (deltaX > 0) game2048.move("right");
+              else game2048.move("left");
+            } else {
+              if (deltaY > 0) game2048.move("down");
+              else game2048.move("up");
+            }
+          }
+        }
+      }, { passive: true });
+    }
+  },
+
+  resetGame: function () {
+    this.grid = [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0]
+    ];
+    this.score = 0;
+    this.won = false;
+    this.over = false;
+
+    var msgEl = document.getElementById("gameMessage");
+    if (msgEl) msgEl.textContent = "";
+
+    this.spawnTile();
+    this.spawnTile();
+    this.render();
+  },
+
+  spawnTile: function () {
+    var emptyCells = [];
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        if (this.grid[r][c] === 0) {
+          emptyCells.push({ r: r, c: c });
+        }
+      }
+    }
+    if (emptyCells.length === 0) return false;
+    var chosen = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    this.grid[chosen.r][chosen.c] = Math.random() < 0.9 ? 2 : 4;
+    return true;
+  },
+
+  render: function () {
+    var board = document.getElementById("gameBoard");
+    if (!board) return;
+    board.innerHTML = "";
+
+    var scoreEl = document.getElementById("gameScore");
+    if (scoreEl) {
+      scoreEl.textContent = this.score + (this.bestScore > 0 ? " (Best: " + this.bestScore + ")" : "");
+    }
+
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        var val = this.grid[r][c];
+        var tile = document.createElement("div");
+        tile.className = "game-tile" + (val > 0 ? " game-tile-" + (val > 2048 ? 2048 : val) : " empty");
+        tile.textContent = val > 0 ? String(val) : "";
+        board.appendChild(tile);
+      }
+    }
+  },
+
+  move: function (dir) {
+    if (this.over) return false;
+
+    var prevStr = JSON.stringify(this.grid);
+    var rotated = 0;
+
+    // Rotate board to always slide left
+    if (dir === "up") rotated = 3;
+    else if (dir === "right") rotated = 2;
+    else if (dir === "down") rotated = 1;
+
+    for (var i = 0; i < rotated; i++) {
+      this.grid = this.rotateGrid(this.grid);
+    }
+
+    // Slide and merge rows
+    for (var r = 0; r < 4; r++) {
+      this.grid[r] = this.slideAndMergeRow(this.grid[r]);
+    }
+
+    // Rotate back
+    var unrotate = (4 - rotated) % 4;
+    for (var j = 0; j < unrotate; j++) {
+      this.grid = this.rotateGrid(this.grid);
+    }
+
+    var changed = prevStr !== JSON.stringify(this.grid);
+    if (changed) {
+      if (this.score > this.bestScore) {
+        this.bestScore = this.score;
+        this.saveBest();
+      }
+
+      this.spawnTile();
+      this.render();
+      this.checkStatus();
+    }
+    return changed;
+  },
+
+  slideAndMergeRow: function (row) {
+    var nonZero = row.filter(function (v) { return v !== 0; });
+    var merged = [];
+    for (var i = 0; i < nonZero.length; i++) {
+      if (i + 1 < nonZero.length && nonZero[i] === nonZero[i + 1]) {
+        var newVal = nonZero[i] * 2;
+        merged.push(newVal);
+        game2048.score += newVal;
+        if (newVal === 2048 && !game2048.won) {
+          game2048.won = true;
+          var msg = document.getElementById("gameMessage");
+          if (msg) msg.textContent = "You Win! 2048 Reached! 🎉";
+        }
+        i++;
+      } else {
+        merged.push(nonZero[i]);
+      }
+    }
+    while (merged.length < 4) {
+      merged.push(0);
+    }
+    return merged;
+  },
+
+  rotateGrid: function (matrix) {
+    var N = matrix.length;
+    var res = [
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0]
+    ];
+    for (var i = 0; i < N; i++) {
+      for (var j = 0; j < N; j++) {
+        res[j][N - 1 - i] = matrix[i][j];
+      }
+    }
+    return res;
+  },
+
+  checkStatus: function () {
+    // Check if any empty cell remains
+    for (var r = 0; r < 4; r++) {
+      for (var c = 0; c < 4; c++) {
+        if (this.grid[r][c] === 0) return;
+        if (c + 1 < 4 && this.grid[r][c] === this.grid[r][c + 1]) return;
+        if (r + 1 < 4 && this.grid[r][c] === this.grid[r + 1][c]) return;
+      }
+    }
+
+    this.over = true;
+    var msg = document.getElementById("gameMessage");
+    if (msg && !this.won) {
+      msg.textContent = "Game Over! Press New Game.";
+    }
+  }
+};
+
+game2048.init();
+
+
+/* ============================================================
+   13. Music Player App
+   ============================================================ */
+
+var musicPlayer = {
+  _storageKeyCustom: "lookout-custom-tracks",
+  tracks: [],
+  currentIndex: 0,
+  isPlaying: false,
+  currentTime: 0,
+  duration: 0,
+  timerInterval: null,
+  audioElement: null,
+  audioCtx: null,
+  synthTimer: null,
+
+  defaultTracks: [
+    {
+      id: "m1",
+      title: "Mayonaka no Door ~ Stay With Me",
+      artist: "Miki Matsubara",
+      duration: 208,
+      cover: "./covers/01-mayonaka-no-door.jpg",
+      notes: [261.63, 329.63, 392.00, 523.25]
+    },
+    {
+      id: "m2",
+      title: "Billie Jean",
+      artist: "Michael Jackson",
+      duration: 294,
+      cover: "./covers/02-billie-jean.jpg",
+      notes: [220.00, 277.18, 329.63, 440.00]
+    },
+    {
+      id: "m3",
+      title: "Smooth Criminal",
+      artist: "Michael Jackson",
+      duration: 257,
+      cover: "./covers/03-smooth-criminal.jpg",
+      notes: [220.00, 246.94, 261.63, 293.66]
+    },
+    {
+      id: "m4",
+      title: "They Don't Care About Us",
+      artist: "Michael Jackson",
+      duration: 284,
+      cover: "./covers/04-they-dont-care-about-us.jpg",
+      notes: [196.00, 246.94, 293.66, 392.00]
+    },
+    {
+      id: "m5",
+      title: "Magic in the Air",
+      artist: "Magic System, Ahmed Chawki",
+      duration: 233,
+      cover: "./covers/05-magic-in-the-air.jpg",
+      notes: [261.63, 293.66, 329.63, 392.00]
+    },
+    {
+      id: "m6",
+      title: "Levitating",
+      artist: "Dua Lipa",
+      duration: 203,
+      cover: "./covers/06-levitating.jpg",
+      notes: [293.66, 349.23, 440.00, 523.25]
+    },
+    {
+      id: "m7",
+      title: "Paint My Love",
+      artist: "Music Travel Love, Dave Moffatt",
+      duration: 228,
+      cover: "./covers/07-paint-my-love.jpg",
+      notes: [261.63, 329.63, 392.00, 493.88]
+    }
+  ],
+
+  loadTracks: function () {
+    this.tracks = this.defaultTracks.slice();
+    try {
+      var saved = localStorage.getItem(this._storageKeyCustom);
+      if (saved) {
+        var custom = JSON.parse(saved);
+        if (Array.isArray(custom)) {
+          this.tracks = this.tracks.concat(custom);
+        }
+      }
+    } catch (e) {}
+  },
+
+  saveCustomTracks: function () {
+    try {
+      var custom = this.tracks.slice(this.defaultTracks.length);
+      localStorage.setItem(this._storageKeyCustom, JSON.stringify(custom));
+    } catch (e) {}
+  },
+
+  formatTime: function (secs) {
+    var s = Math.max(0, Math.floor(secs || 0));
+    var m = Math.floor(s / 60);
+    var rem = s % 60;
+    return m + ":" + (rem < 10 ? "0" : "") + rem;
+  },
+
+  initAudioContext: function () {
+    if (!this.audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+      var AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      try {
+        this.audioCtx = new AudioCtxClass();
+      } catch (e) {}
+    }
+    if (this.audioCtx && this.audioCtx.state === "suspended") {
+      this.audioCtx.resume();
+    }
+  },
+
+  playSynthTone: function (freq) {
+    if (!this.audioCtx) return;
+    try {
+      var osc = this.audioCtx.createOscillator();
+      var gain = this.audioCtx.createGain();
+      var vol = (lookoutState.volume / 100) * 0.08;
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq || 330, this.audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 1.2);
+
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+
+      osc.start();
+      osc.stop(this.audioCtx.currentTime + 1.3);
+    } catch (e) {}
+  },
+
+  startSynthBeats: function () {
+    this.stopSynthBeats();
+    var self = this;
+    var track = this.tracks[this.currentIndex] || {};
+    var notes = track.notes || [261.63, 329.63, 392.00, 523.25];
+    var step = 0;
+
+    this.synthTimer = setInterval(function () {
+      if (!self.isPlaying) return;
+      var note = notes[step % notes.length];
+      self.playSynthTone(note);
+      step++;
+    }, 1400);
+  },
+
+  stopSynthBeats: function () {
+    if (this.synthTimer) {
+      clearInterval(this.synthTimer);
+      this.synthTimer = null;
+    }
+  },
+
+  loadTrack: function (index) {
+    if (index < 0) index = this.tracks.length - 1;
+    if (index >= this.tracks.length) index = 0;
+    this.currentIndex = index;
+
+    var track = this.tracks[this.currentIndex];
+    this.currentTime = 0;
+    this.duration = track.duration || 180;
+
+    var titleEl = document.getElementById("musicTitle");
+    if (titleEl) titleEl.textContent = track.title;
+
+    var artistEl = document.getElementById("musicArtist");
+    if (artistEl) artistEl.textContent = track.artist;
+
+    var artworkEl = document.getElementById("musicArtwork");
+    if (artworkEl) {
+      if (track.cover) {
+        artworkEl.innerHTML = '<img src="' + track.cover + '" alt="' + track.title + '">';
+      } else {
+        artworkEl.innerHTML = '<div class="music-artwork-placeholder">♪</div>';
+      }
+    }
+
+    var durEl = document.getElementById("musicDuration");
+    if (durEl) durEl.textContent = this.formatTime(this.duration);
+
+    var curEl = document.getElementById("musicCurrentTime");
+    if (curEl) curEl.textContent = "0:00";
+
+    var progEl = document.getElementById("musicProgress");
+    if (progEl) progEl.value = 0;
+
+    // Handle real audio if URL present
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement = null;
+    }
+
+    if (track.url) {
+      try {
+        var self = this;
+        var audio = new Audio(track.url);
+        audio.volume = Math.max(0, Math.min(1, lookoutState.volume / 100));
+        audio.addEventListener("ended", function () {
+          self.next();
+        });
+        audio.addEventListener("error", function () {
+          // Graceful fallback if external audio fails
+          self.audioElement = null;
+        });
+        this.audioElement = audio;
+      } catch (e) {
+        this.audioElement = null;
+      }
+    }
+
+    this.renderPlaylist();
+    if (this.isPlaying) {
+      this.play();
+    }
+  },
+
+  play: function () {
+    this.initAudioContext();
+    this.isPlaying = true;
+
+    var playBtn = document.getElementById("musicPlayPause");
+    if (playBtn) playBtn.textContent = "⏸";
+
+    if (this.audioElement) {
+      var p = this.audioElement.play();
+      if (p && p.catch) {
+        var self = this;
+        p.catch(function () {
+          self.audioElement = null;
+          self.startSynthBeats();
+        });
+      }
+    } else {
+      this.startSynthBeats();
+    }
+
+    clearInterval(this.timerInterval);
+    var self = this;
+    this.timerInterval = setInterval(function () {
+      if (!self.isPlaying) return;
+
+      if (self.audioElement && !isNaN(self.audioElement.currentTime)) {
+        self.currentTime = self.audioElement.currentTime;
+        if (self.audioElement.duration && !isNaN(self.audioElement.duration)) {
+          self.duration = self.audioElement.duration;
+        }
+      } else {
+        self.currentTime += 1;
+      }
+
+      var curEl = document.getElementById("musicCurrentTime");
+      if (curEl) curEl.textContent = self.formatTime(self.currentTime);
+
+      var durEl = document.getElementById("musicDuration");
+      if (durEl) durEl.textContent = self.formatTime(self.duration);
+
+      var progEl = document.getElementById("musicProgress");
+      if (progEl && self.duration > 0) {
+        progEl.value = Math.min(100, (self.currentTime / self.duration) * 100);
+      }
+
+      if (self.currentTime >= self.duration) {
+        self.next();
+      }
+    }, 1000);
+  },
+
+  pause: function () {
+    this.isPlaying = false;
+    var playBtn = document.getElementById("musicPlayPause");
+    if (playBtn) playBtn.textContent = "▶";
+
+    if (this.audioElement) {
+      this.audioElement.pause();
+    }
+    this.stopSynthBeats();
+    clearInterval(this.timerInterval);
+  },
+
+  togglePlay: function () {
+    if (this.isPlaying) this.pause();
+    else this.play();
+  },
+
+  next: function () {
+    this.loadTrack(this.currentIndex + 1);
+    if (this.isPlaying) this.play();
+  },
+
+  prev: function () {
+    if (this.currentTime > 3) {
+      this.seek(0);
+    } else {
+      this.loadTrack(this.currentIndex - 1);
+      if (this.isPlaying) this.play();
+    }
+  },
+
+  seek: function (percent) {
+    this.currentTime = (percent / 100) * this.duration;
+    if (this.audioElement) {
+      try {
+        this.audioElement.currentTime = this.currentTime;
+      } catch (e) {}
+    }
+    var curEl = document.getElementById("musicCurrentTime");
+    if (curEl) curEl.textContent = this.formatTime(this.currentTime);
+    var progEl = document.getElementById("musicProgress");
+    if (progEl) progEl.value = percent;
+  },
+
+  setVolume: function (vol) {
+    lookoutState.volume = vol;
+    lookoutState.save();
+    if (this.audioElement) {
+      this.audioElement.volume = Math.max(0, Math.min(1, vol / 100));
+    }
+    var ccVol = document.getElementById("cc-volume");
+    if (ccVol) ccVol.value = String(vol);
+  },
+
+  renderPlaylist: function () {
+    var listEl = document.getElementById("musicPlaylist");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+
+    var searchEl = document.getElementById("musicSearch");
+    var q = searchEl ? searchEl.value.toLowerCase().trim() : "";
+
+    var self = this;
+    var visibleCount = 0;
+
+    this.tracks.forEach(function (t, idx) {
+      if (q) {
+        var matchTitle = t.title && t.title.toLowerCase().indexOf(q) !== -1;
+        var matchArtist = t.artist && t.artist.toLowerCase().indexOf(q) !== -1;
+        if (!matchTitle && !matchArtist) return;
+      }
+
+      visibleCount++;
+      var trackEl = document.createElement("div");
+      trackEl.className = "music-track" + (idx === self.currentIndex ? " active" : "");
+      trackEl.setAttribute("data-index", idx);
+
+      trackEl.innerHTML =
+        '<div class="music-track-info-mini">' +
+          '<div class="music-track-title-mini">' + t.title + '</div>' +
+          '<div class="music-track-artist-mini">' + t.artist + '</div>' +
+        '</div>' +
+        '<span style="font-size:11px;color:rgba(125,211,252,0.6);">' + self.formatTime(t.duration) + '</span>';
+
+      trackEl.addEventListener("click", function () {
+        self.loadTrack(idx);
+        self.play();
+      });
+
+      listEl.appendChild(trackEl);
+    });
+
+    if (visibleCount === 0) {
+      listEl.innerHTML = '<div class="music-empty">No matching tracks found</div>';
+    }
+  },
+
+  openAddOverlay: function () {
+    var overlay = document.getElementById("musicFormOverlay");
+    if (overlay) {
+      overlay.style.display = "flex";
+      var titleInput = document.getElementById("musicInputTitle");
+      if (titleInput) {
+        titleInput.value = "";
+        titleInput.focus();
+      }
+      var artistInput = document.getElementById("musicInputArtist");
+      if (artistInput) artistInput.value = "";
+      var urlInput = document.getElementById("musicInputUrl");
+      if (urlInput) urlInput.value = "";
+    }
+  },
+
+  closeAddOverlay: function () {
+    var overlay = document.getElementById("musicFormOverlay");
+    if (overlay) overlay.style.display = "none";
+  },
+
+  saveNewTrack: function () {
+    var titleEl = document.getElementById("musicInputTitle");
+    var artistEl = document.getElementById("musicInputArtist");
+    var durEl = document.getElementById("musicInputDuration");
+    var urlEl = document.getElementById("musicInputUrl");
+
+    var title = titleEl ? titleEl.value.trim() : "";
+    if (!title) {
+      alert("Please enter a track title.");
+      return;
+    }
+
+    var artist = artistEl && artistEl.value.trim() ? artistEl.value.trim() : "Independent Artist";
+    var duration = durEl ? parseInt(durEl.value, 10) || 180 : 180;
+    var url = urlEl ? urlEl.value.trim() : "";
+
+    var newTrack = {
+      id: "m_custom_" + Date.now(),
+      title: title,
+      artist: artist,
+      duration: duration,
+      url: url,
+      notes: [261.63, 329.63, 392.00, 440.00]
+    };
+
+    this.tracks.push(newTrack);
+    this.saveCustomTracks();
+    this.closeAddOverlay();
+    this.renderPlaylist();
+    this.loadTrack(this.tracks.length - 1);
+    this.play();
+  },
+
+  init: function () {
+    this.loadTracks();
+    this.loadTrack(0);
+
+    var playBtn = document.getElementById("musicPlayPause");
+    if (playBtn) {
+      playBtn.addEventListener("click", function () {
+        musicPlayer.togglePlay();
+      });
+    }
+
+    var nextBtn = document.getElementById("musicNext");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", function () {
+        musicPlayer.next();
+      });
+    }
+
+    var prevBtn = document.getElementById("musicPrev");
+    if (prevBtn) {
+      prevBtn.addEventListener("click", function () {
+        musicPlayer.prev();
+      });
+    }
+
+    var progressEl = document.getElementById("musicProgress");
+    if (progressEl) {
+      progressEl.addEventListener("input", function () {
+        musicPlayer.seek(Number(this.value));
+      });
+    }
+
+    var volEl = document.getElementById("musicVolume");
+    if (volEl) {
+      volEl.value = String(lookoutState.volume);
+      volEl.addEventListener("input", function () {
+        musicPlayer.setVolume(Number(this.value));
+      });
+    }
+
+    var searchEl = document.getElementById("musicSearch");
+    if (searchEl) {
+      searchEl.addEventListener("input", function () {
+        musicPlayer.renderPlaylist();
+      });
+    }
+
+    var addBtn = document.getElementById("musicAddTrack");
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        musicPlayer.openAddOverlay();
+      });
+    }
+
+    var cancelBtn = document.getElementById("musicFormCancel");
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", function () {
+        musicPlayer.closeAddOverlay();
+      });
+    }
+
+    var saveBtn = document.getElementById("musicFormSave");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        musicPlayer.saveNewTrack();
+      });
+    }
+  }
+};
+
+musicPlayer.init();
+
+
+/* ============================================================
+   14. Notes App
+   ============================================================ */
+
+var notesManager = {
+  _storageKey: "lookout-notes",
+  notes: [],
+  selectedId: null,
+
+  defaultNotes: [
+    {
+      id: "n1",
+      title: "Lookout OS Architecture",
+      body: "Built with pure vanilla web technologies:\n- HTML5, modern CSS3 glassmorphism, and vanilla ES6 JavaScript\n- Modular window manager with pointer-based dragging and z-index elevation\n- Pill dock with active running indicators and app launcher\n- Control Center for display brightness, volume, theme, and night mode\n- iOS-style customizable lockscreen with live widgets\n- Zero external build steps or dependencies",
+      updatedAt: Date.now() - 3600000 * 2
+    },
+    {
+      id: "n2",
+      title: "Project Ideas & Roadmap",
+      body: "Future additions for the Lookout OS environment:\n- Offline ServiceWorker caching for standalone PWA installation\n- Custom wallpaper shader generator using WebGL\n- Markdown syntax highlighting in Notes editor\n- Audio visualizer canvas inside Music player\n- Multi-window tiling and snapping shortcuts",
+      updatedAt: Date.now() - 3600000 * 12
+    },
+    {
+      id: "n3",
+      title: "Terminal Command Reference",
+      body: "Essential shell commands available in Lookout Terminal:\n- help: list all built-in commands\n- whoami: bio and developer links\n- ls & cat <file>: inspect devlogs and system notes\n- apps: inspect all registered windows\n- open <app>: launch windows directly from shell\n- theme <color>: change system accent palette\n- night <on|off>: toggle dark glass theme\n- brightness <0-100>: adjust desktop lumination",
+      updatedAt: Date.now() - 3600000 * 24
+    }
+  ],
+
+  load: function () {
+    try {
+      var saved = localStorage.getItem(this._storageKey);
+      if (saved) {
+        this.notes = JSON.parse(saved);
+      } else {
+        this.notes = this.defaultNotes.slice();
+        this.save();
+      }
+    } catch (e) {
+      this.notes = this.defaultNotes.slice();
+    }
+    if (!this.selectedId && this.notes.length > 0) {
+      this.selectedId = this.notes[0].id;
+    }
+  },
+
+  save: function () {
+    try {
+      localStorage.setItem(this._storageKey, JSON.stringify(this.notes));
+    } catch (e) {}
+  },
+
+  formatDate: function (timestamp) {
+    if (!timestamp) return "";
+    var now = Date.now();
+    var diffMs = now - timestamp;
+    var diffMin = Math.floor(diffMs / 60000);
+    var diffHrs = Math.floor(diffMs / 3600000);
+
+    if (diffMin < 2) return "Just now";
+    if (diffMin < 60) return diffMin + "m ago";
+    if (diffHrs < 24) return diffHrs + "h ago";
+
+    var d = new Date(timestamp);
+    return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  },
+
+  getNote: function (id) {
+    for (var i = 0; i < this.notes.length; i++) {
+      if (this.notes[i].id === id) return this.notes[i];
+    }
+    return null;
+  },
+
+  renderList: function (filterQuery) {
+    var listEl = document.getElementById("notesList");
+    if (!listEl) return;
+    listEl.innerHTML = "";
+
+    var q = (filterQuery || "").toLowerCase().trim();
+    var filtered = this.notes.filter(function (n) {
+      if (!q) return true;
+      var titleMatch = n.title && n.title.toLowerCase().indexOf(q) !== -1;
+      var bodyMatch = n.body && n.body.toLowerCase().indexOf(q) !== -1;
+      return titleMatch || bodyMatch;
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div class="notes-empty" style="padding:20px 8px;font-size:12px;">No notes found</div>';
+      return;
+    }
+
+    var self = this;
+    filtered.forEach(function (n) {
+      var item = document.createElement("div");
+      item.className = "note-item" + (n.id === self.selectedId ? " selected" : "");
+      item.setAttribute("data-id", n.id);
+
+      var title = document.createElement("div");
+      title.className = "note-item-title";
+      title.textContent = n.title || "Untitled Note";
+
+      var preview = document.createElement("div");
+      preview.className = "note-item-preview";
+      preview.textContent = n.body ? n.body.replace(/\n/g, " ").slice(0, 48) : "Empty note";
+
+      var time = document.createElement("div");
+      time.className = "note-item-time";
+      time.textContent = self.formatDate(n.updatedAt);
+
+      item.appendChild(title);
+      item.appendChild(preview);
+      item.appendChild(time);
+
+      item.addEventListener("click", function () {
+        self.selectNote(n.id);
+      });
+
+      listEl.appendChild(item);
+    });
+  },
+
+  renderEditor: function () {
+    var emptyEl = document.getElementById("notesEmpty");
+    var editorEl = document.getElementById("notesEditor");
+    var titleEl = document.getElementById("notesTitle");
+    var bodyEl = document.getElementById("notesBody");
+    var timeEl = document.getElementById("notesTimestamp");
+
+    var note = this.getNote(this.selectedId);
+    if (!note) {
+      if (emptyEl) emptyEl.style.display = "flex";
+      if (editorEl) editorEl.style.display = "none";
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    if (editorEl) editorEl.style.display = "flex";
+
+    if (titleEl) titleEl.value = note.title || "";
+    if (bodyEl) bodyEl.value = note.body || "";
+    if (timeEl) timeEl.textContent = "Last edited: " + this.formatDate(note.updatedAt);
+  },
+
+  selectNote: function (id) {
+    this.selectedId = id;
+    var searchEl = document.getElementById("notesSearch");
+    this.renderList(searchEl ? searchEl.value : "");
+    this.renderEditor();
+  },
+
+  createNote: function () {
+    var newNote = {
+      id: "n_" + Date.now(),
+      title: "New Note",
+      body: "",
+      updatedAt: Date.now()
+    };
+    this.notes.unshift(newNote);
+    this.selectedId = newNote.id;
+    this.save();
+
+    var searchEl = document.getElementById("notesSearch");
+    if (searchEl) searchEl.value = "";
+
+    this.renderList();
+    this.renderEditor();
+
+    var titleEl = document.getElementById("notesTitle");
+    if (titleEl) {
+      titleEl.focus();
+      titleEl.select();
+    }
+  },
+
+  deleteNote: function () {
+    var note = this.getNote(this.selectedId);
+    if (!note) return;
+
+    if (confirm("Delete note \"" + (note.title || "Untitled") + "\"?")) {
+      var delId = this.selectedId;
+      this.notes = this.notes.filter(function (n) { return n.id !== delId; });
+      this.save();
+      this.selectedId = this.notes.length > 0 ? this.notes[0].id : null;
+
+      var searchEl = document.getElementById("notesSearch");
+      this.renderList(searchEl ? searchEl.value : "");
+      this.renderEditor();
+    }
+  },
+
+  init: function () {
+    this.load();
+    this.renderList();
+    this.renderEditor();
+
+    var self = this;
+
+    var newBtn = document.getElementById("notesNew");
+    if (newBtn) {
+      newBtn.addEventListener("click", function () {
+        self.createNote();
+      });
+    }
+
+    var delBtn = document.getElementById("notesDelete");
+    if (delBtn) {
+      delBtn.addEventListener("click", function () {
+        self.deleteNote();
+      });
+    }
+
+    var searchEl = document.getElementById("notesSearch");
+    if (searchEl) {
+      searchEl.addEventListener("input", function () {
+        self.renderList(this.value);
+      });
+    }
+
+    var titleEl = document.getElementById("notesTitle");
+    if (titleEl) {
+      titleEl.addEventListener("input", function () {
+        var note = self.getNote(self.selectedId);
+        if (note) {
+          note.title = this.value;
+          note.updatedAt = Date.now();
+          self.save();
+
+          var timeEl = document.getElementById("notesTimestamp");
+          if (timeEl) timeEl.textContent = "Last edited: " + self.formatDate(note.updatedAt);
+
+          var activeItem = document.querySelector(".note-item.selected .note-item-title");
+          if (activeItem) activeItem.textContent = note.title || "Untitled Note";
+        }
+      });
+    }
+
+    var bodyEl = document.getElementById("notesBody");
+    if (bodyEl) {
+      bodyEl.addEventListener("input", function () {
+        var note = self.getNote(self.selectedId);
+        if (note) {
+          note.body = this.value;
+          note.updatedAt = Date.now();
+          self.save();
+
+          var timeEl = document.getElementById("notesTimestamp");
+          if (timeEl) timeEl.textContent = "Last edited: " + self.formatDate(note.updatedAt);
+
+          var activePrev = document.querySelector(".note-item.selected .note-item-preview");
+          if (activePrev) activePrev.textContent = note.body ? note.body.replace(/\n/g, " ").slice(0, 48) : "Empty note";
+        }
+      });
+    }
+  }
+};
+
+notesManager.init();
+
+
+/* ============================================================
    9. boot
    ============================================================ */
 
@@ -1620,5 +3467,10 @@ terminalScreen.addEventListener("mousedown", function (e) {
 
 terminalPrint("LOOKOUT OS · tty1", "terminal-banner");
 terminalPrint("type `help` to get your bearings.", "terminal-dim");
+
+var ccAppCount = document.getElementById("cc-appcount");
+if (ccAppCount) {
+  ccAppCount.textContent = Object.keys(apps).length + " installed";
+}
 
 raiseWindow(welcomeScreen);
