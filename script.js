@@ -1949,100 +1949,219 @@ contactsManager.init();
 
 
 /* ============================================================
-   10. Projects App
+   10. Projects App — Real GitHub Repositories (Yourfiyan)
    ============================================================ */
 
 var projectsManager = {
-  _storageKey: "lookout-projects",
+  _storageKey: "lookout-github-repos-v2",
+  githubUser: "Yourfiyan",
   projects: [],
   selectedId: null,
+  isLoading: false,
 
+  // Fallback data inspected directly from GitHub API for user 'Yourfiyan'
   defaultProjects: [
     {
-      id: "p1",
-      title: "Lookout OS",
+      id: "repo_WebOs",
+      title: "WebOs",
+      desc: "",
       category: "active",
       status: "active",
-      desc: "A personal operating system in the browser with glassmorphism, responsive windows, dock, iOS-style lock screen, and built-in apps.",
-      tags: ["JavaScript", "CSS3", "WebOS", "Vanilla"],
-      links: [
-        { label: "GitHub", url: "https://github.com/Yourfiyan/WebOs" },
-        { label: "Live Demo", url: "https://yourfiyan.is-a.dev/WebOs/" }
-      ]
+      language: "JavaScript",
+      tags: ["JavaScript"],
+      stars: 1,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/WebOs",
+      homepage: "https://yourfiyan.is-a.dev/WebOs/",
+      pushedAt: "2026-09-13T12:08:58Z"
     },
     {
-      id: "p2",
-      title: "Crate Audio Lounge",
-      category: "completed",
-      status: "completed",
-      desc: "Interactive vinyl record turntable shelf with spinning sleeve animations and curated track information.",
-      tags: ["Audio", "UI", "Music", "Animation"],
-      links: [
-        { label: "Open Crate", action: "open:crate" }
-      ]
-    },
-    {
-      id: "p3",
-      title: "RAG Architecture Explainer",
-      category: "completed",
-      status: "completed",
-      desc: "Visual architecture breakdown and deep dive into Retrieval-Augmented Generation systems and vector retrieval.",
-      tags: ["AI", "Architecture", "RAG", "LLM"],
-      links: [
-        { label: "View PDF", url: "./rag-architecture-explainer.pdf" }
-      ]
-    },
-    {
-      id: "p4",
-      title: "Neural Playground",
+      id: "repo_Yourfiyan",
+      title: "Yourfiyan",
+      desc: "GitHub profile README — skills, projects, and contact info",
       category: "active",
       status: "active",
-      desc: "Interactive browser-based neural network visualizer simulating feed-forward networks, activations, and real-time decision boundaries.",
-      tags: ["Machine Learning", "Canvas", "WebGL"],
-      links: [
-        { label: "GitHub", url: "https://github.com/Yourfiyan" }
-      ]
+      language: null,
+      tags: ["github-profile", "profile-readme"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/Yourfiyan",
+      homepage: null,
+      pushedAt: "2026-09-13T10:53:10Z"
     },
     {
-      id: "p5",
-      title: "HyperText Terminal",
-      category: "completed",
-      status: "completed",
-      desc: "Lookout OS built-in virtual shell environment with devlog reader, filesystem navigation, and OS state controls.",
-      tags: ["CLI", "Terminal", "Glassmorphism"],
-      links: [
-        { label: "Launch Terminal", action: "open:terminal" }
-      ]
-    },
-    {
-      id: "p6",
-      title: "Ambient Weather Engine",
+      id: "repo_game-id",
+      title: "game-id",
+      desc: "",
       category: "active",
       status: "active",
-      desc: "Live meteorological forecast engine with weather condition tracking, multi-day forecasting, and fallback telemetry.",
-      tags: ["API", "Weather", "Telemetry"],
-      links: [
-        { label: "Open Weather", action: "open:weather" }
-      ]
+      language: "JavaScript",
+      tags: ["JavaScript"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/game-id",
+      homepage: "http://yourfiyan.is-a.dev/game-id/app",
+      pushedAt: "2026-09-12T21:03:08Z"
     },
     {
-      id: "p7",
-      title: "P2P WebOS Cloud Sync",
-      category: "planning",
-      status: "planning",
-      desc: "Decentralized state synchronization across desktop instances via WebRTC peer data channels and local CRDTs.",
-      tags: ["WebRTC", "P2P", "CRDT", "Sync"],
-      links: [
-        { label: "Design Doc", url: "https://github.com/Yourfiyan" }
-      ]
+      id: "repo_yourfiyan.github.io",
+      title: "yourfiyan.github.io",
+      desc: "Personal portfolio website built with TypeScript",
+      category: "active",
+      status: "active",
+      language: "TypeScript",
+      tags: ["TypeScript", "personal-website", "portfolio"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/yourfiyan.github.io",
+      homepage: null,
+      pushedAt: "2026-07-26T05:43:12Z"
+    },
+    {
+      id: "repo_datacom-job-simulation",
+      title: "datacom-job-simulation",
+      desc: "",
+      category: "completed",
+      status: "completed",
+      language: null,
+      tags: [],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/datacom-job-simulation",
+      homepage: null,
+      pushedAt: "2026-07-11T20:03:38Z"
+    },
+    {
+      id: "repo_Pocketphone",
+      title: "Pocketphone",
+      desc: "A comprehensive phone inventory management system with a secure admin panel and dynamic product showcase",
+      category: "completed",
+      status: "completed",
+      language: "PHP",
+      tags: ["PHP", "admin-panel", "crud", "inventory-management", "mysql"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/Pocketphone",
+      homepage: null,
+      pushedAt: "2026-06-21T11:32:12Z"
+    },
+    {
+      id: "repo_india-civic-transparency",
+      title: "india-civic-transparency",
+      desc: "India Civic Transparency Platform - Interactive dashboard with Leaflet maps, crime data, infrastructure tracking, and Supreme Court case analytics",
+      category: "completed",
+      status: "completed",
+      language: "TypeScript",
+      tags: ["TypeScript", "civic-tech", "dashboard", "expressjs", "india", "leaflet", "nextjs"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/india-civic-transparency",
+      homepage: null,
+      pushedAt: "2026-05-24T14:32:55Z"
+    },
+    {
+      id: "repo_customer-support-ai-agent",
+      title: "customer-support-ai-agent",
+      desc: "Multi-agent customer support system using Google Gemini AI - Built for Kaggle Agents Intensive",
+      category: "completed",
+      status: "completed",
+      language: "Python",
+      tags: ["Python", "ai", "customer-support", "fastapi", "gemini", "llm", "pydantic"],
+      stars: 1,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/customer-support-ai-agent",
+      homepage: null,
+      pushedAt: "2026-04-26T15:03:20Z"
+    },
+    {
+      id: "repo_calculatoready",
+      title: "calculatoready",
+      desc: "A beginner-friendly web-based calculator built with HTML, CSS, and plain JavaScript to solidify front-end fundamentals.",
+      category: "completed",
+      status: "completed",
+      language: "JavaScript",
+      tags: ["JavaScript", "beginner-project", "calculator", "css", "html"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/calculatoready",
+      homepage: null,
+      pushedAt: "2026-03-08T12:54:05Z"
+    },
+    {
+      id: "repo_will-you-be-my-valentine-2026",
+      title: "will-you-be-my-valentine-2026",
+      desc: " Will You Be My Valentine? (2026 Coquette Edition) — A viral, interactive proposal website with bouncy spring physics, smart rejection avoidance, and the infinite Yes button glitch. Coquette Aesthetic | Gen Z Scrapbook Style | HTML5 CSS3 JS | TikTok Viral Website Idea",
+      category: "completed",
+      status: "completed",
+      language: "CSS",
+      tags: ["CSS", "coquette-aesthetic", "cute-website", "gen-z", "interactive-website", "valentine-proposal"],
+      stars: 5,
+      forks: 6,
+      url: "https://github.com/Yourfiyan/will-you-be-my-valentine-2026",
+      homepage: "https://yourfiyan.is-a.dev/will-you-be-my-valentine-2026/",
+      pushedAt: "2026-03-08T12:53:14Z"
+    },
+    {
+      id: "repo_fullstackopen",
+      title: "fullstackopen",
+      desc: "Full Stack Open 2024 - University of Helsinki course exercises",
+      category: "completed",
+      status: "completed",
+      language: null,
+      tags: ["fullstackopen", "learning", "nodejs", "react"],
+      stars: 0,
+      forks: 0,
+      url: "https://github.com/Yourfiyan/fullstackopen",
+      homepage: null,
+      pushedAt: "2026-03-08T12:51:20Z"
     }
   ],
 
+  determineStatus: function (repo) {
+    if (repo.archived) return "completed";
+    var text = ((repo.name || "") + " " + (repo.description || "") + " " + (repo.topics ? repo.topics.join(" ") : "")).toLowerCase();
+    if (text.indexOf("planning") !== -1 || text.indexOf("roadmap") !== -1 || text.indexOf("draft") !== -1 || text.indexOf("wip") !== -1 || text.indexOf("rfc") !== -1) {
+      return "planning";
+    }
+    if (repo.pushed_at) {
+      var pushedTime = new Date(repo.pushed_at).getTime();
+      var now = Date.now();
+      // Repos pushed within last 90 days are active
+      if (now - pushedTime < 90 * 24 * 60 * 60 * 1000) {
+        return "active";
+      }
+    }
+    // Completed course exercises, hackathons, or finalized projects
+    if (text.indexOf("exercise") !== -1 || text.indexOf("simulation") !== -1 || text.indexOf("intensive") !== -1 || text.indexOf("valentine-2026") !== -1) {
+      return "completed";
+    }
+    // Sensible fallback for established repositories
+    return "completed";
+  },
+
+  formatDate: function (dateStr) {
+    if (!dateStr) return "";
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  },
+
   load: function () {
+    // Clean up any legacy fabricated projects from previous storage keys
+    try {
+      localStorage.removeItem("lookout-projects");
+    } catch (e) {}
+
     try {
       var saved = localStorage.getItem(this._storageKey);
       if (saved) {
-        this.projects = JSON.parse(saved);
+        var parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url && parsed[0].url.indexOf("github.com/Yourfiyan") !== -1) {
+          this.projects = parsed;
+        } else {
+          this.projects = this.defaultProjects.slice();
+          this.save();
+        }
       } else {
         this.projects = this.defaultProjects.slice();
         this.save();
@@ -2050,6 +2169,7 @@ var projectsManager = {
     } catch (e) {
       this.projects = this.defaultProjects.slice();
     }
+
     if (!this.selectedId && this.projects.length > 0) {
       this.selectedId = this.projects[0].id;
     }
@@ -2059,6 +2179,75 @@ var projectsManager = {
     try {
       localStorage.setItem(this._storageKey, JSON.stringify(this.projects));
     } catch (e) {}
+  },
+
+  fetchGitHubRepos: function () {
+    var self = this;
+    if (this.isLoading) return;
+    this.isLoading = true;
+
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 5000) : null;
+
+    fetch("https://api.github.com/users/" + this.githubUser + "/repos?sort=pushed&per_page=100", {
+      signal: controller ? controller.signal : undefined
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("GitHub API status " + res.status);
+        return res.json();
+      })
+      .then(function (repos) {
+        if (timeoutId) clearTimeout(timeoutId);
+        self.isLoading = false;
+        if (!Array.isArray(repos)) return;
+
+        // Filter out forks - only include repositories that genuinely belong to the user
+        var ownRepos = repos.filter(function (r) {
+          return !r.fork;
+        });
+
+        if (ownRepos.length === 0) return;
+
+        var mapped = ownRepos.map(function (r) {
+          var tags = [];
+          if (r.language) tags.push(r.language);
+          if (Array.isArray(r.topics)) {
+            r.topics.forEach(function (t) {
+              if (tags.indexOf(t) === -1) tags.push(t);
+            });
+          }
+
+          var status = self.determineStatus(r);
+
+          return {
+            id: "repo_" + r.name,
+            title: r.name,
+            desc: r.description || "",
+            category: status,
+            status: status,
+            language: r.language || null,
+            tags: tags,
+            stars: r.stargazers_count || 0,
+            forks: r.forks_count || 0,
+            url: r.html_url,
+            homepage: r.homepage || null,
+            pushedAt: r.pushed_at
+          };
+        });
+
+        self.projects = mapped;
+        self.save();
+        if (!self.getProject(self.selectedId) && self.projects.length > 0) {
+          self.selectedId = self.projects[0].id;
+        }
+        self.renderGrid();
+        self.renderDetail();
+      })
+      .catch(function () {
+        if (timeoutId) clearTimeout(timeoutId);
+        self.isLoading = false;
+        // Keep using bundled real GitHub repositories
+      });
   },
 
   getProject: function (id) {
@@ -2085,11 +2274,12 @@ var projectsManager = {
       var titleMatch = p.title && p.title.toLowerCase().indexOf(q) !== -1;
       var descMatch = p.desc && p.desc.toLowerCase().indexOf(q) !== -1;
       var tagsMatch = p.tags && p.tags.some(function (t) { return t.toLowerCase().indexOf(q) !== -1; });
-      return titleMatch || descMatch || tagsMatch;
+      var langMatch = p.language && p.language.toLowerCase().indexOf(q) !== -1;
+      return titleMatch || descMatch || tagsMatch || langMatch;
     });
 
     if (filtered.length === 0) {
-      gridEl.innerHTML = '<div class="projects-empty-detail" style="grid-column: 1 / -1;">No matching projects found</div>';
+      gridEl.innerHTML = '<div class="projects-empty-detail" style="grid-column: 1 / -1;">No matching repositories found</div>';
       return;
     }
 
@@ -2108,12 +2298,16 @@ var projectsManager = {
 
       var desc = document.createElement("div");
       desc.className = "project-card-desc";
-      desc.textContent = p.desc;
+      desc.textContent = p.desc ? p.desc : "No description provided.";
+      if (!p.desc) {
+        desc.style.opacity = "0.5";
+        desc.style.fontStyle = "italic";
+      }
 
       var tags = document.createElement("div");
       tags.className = "project-card-tags";
-      if (p.tags) {
-        p.tags.forEach(function (t) {
+      if (p.tags && p.tags.length > 0) {
+        p.tags.slice(0, 4).forEach(function (t) {
           var tag = document.createElement("span");
           tag.className = "project-tag";
           tag.textContent = t;
@@ -2141,7 +2335,7 @@ var projectsManager = {
 
     var project = this.getProject(this.selectedId);
     if (!project) {
-      detailEl.innerHTML = '<div class="projects-empty-detail">Select a project to view details</div>';
+      detailEl.innerHTML = '<div class="projects-empty-detail">Select a repository to view details</div>';
       return;
     }
 
@@ -2149,18 +2343,52 @@ var projectsManager = {
     title.className = "project-detail-title";
     title.textContent = project.title;
 
-    var status = document.createElement("div");
+    var metaRow = document.createElement("div");
+    metaRow.style.display = "flex";
+    metaRow.style.alignItems = "center";
+    metaRow.style.gap = "8px";
+    metaRow.style.marginBottom = "8px";
+    metaRow.style.flexWrap = "wrap";
+
+    var status = document.createElement("span");
     status.className = "project-status " + project.status;
-    status.style.marginBottom = "8px";
     status.textContent = "STATUS: " + project.status.toUpperCase();
+    metaRow.appendChild(status);
+
+    if (project.stars > 0) {
+      var starsBadge = document.createElement("span");
+      starsBadge.className = "project-tag";
+      starsBadge.style.color = "#fbbf24";
+      starsBadge.textContent = "★ " + project.stars;
+      metaRow.appendChild(starsBadge);
+    }
+
+    if (project.forks > 0) {
+      var forksBadge = document.createElement("span");
+      forksBadge.className = "project-tag";
+      forksBadge.textContent = "⑂ " + project.forks;
+      metaRow.appendChild(forksBadge);
+    }
+
+    if (project.pushedAt) {
+      var updated = document.createElement("span");
+      updated.style.fontSize = "11px";
+      updated.style.color = "rgba(255, 255, 255, 0.5)";
+      updated.textContent = "Updated: " + this.formatDate(project.pushedAt);
+      metaRow.appendChild(updated);
+    }
 
     var desc = document.createElement("div");
     desc.className = "project-detail-desc";
-    desc.textContent = project.desc;
+    desc.textContent = project.desc ? project.desc : "No description provided for this repository.";
+    if (!project.desc) {
+      desc.style.opacity = "0.6";
+      desc.style.fontStyle = "italic";
+    }
 
     var tags = document.createElement("div");
     tags.className = "project-detail-tags";
-    if (project.tags) {
+    if (project.tags && project.tags.length > 0) {
       project.tags.forEach(function (t) {
         var tag = document.createElement("span");
         tag.className = "project-tag";
@@ -2171,48 +2399,50 @@ var projectsManager = {
 
     var links = document.createElement("div");
     links.className = "project-detail-links";
-    if (project.links && project.links.length > 0) {
-      project.links.forEach(function (l) {
-        var link = document.createElement("a");
-        link.className = "project-link";
-        link.textContent = l.label;
-        if (l.action && l.action.indexOf("open:") === 0) {
-          var appTarget = l.action.slice(5);
-          link.href = "#";
-          link.addEventListener("click", function (e) {
-            e.preventDefault();
-            if (apps[appTarget]) openWindow(apps[appTarget]);
-          });
-        } else if (l.url) {
-          link.href = l.url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-        }
-        links.appendChild(link);
-      });
+
+    if (project.url) {
+      var ghLink = document.createElement("a");
+      ghLink.className = "project-link";
+      ghLink.textContent = "GitHub Repository ↗";
+      ghLink.href = project.url;
+      ghLink.target = "_blank";
+      ghLink.rel = "noopener noreferrer";
+      links.appendChild(ghLink);
+    }
+
+    if (project.homepage) {
+      var liveLink = document.createElement("a");
+      liveLink.className = "project-link";
+      liveLink.textContent = "Live Site / Demo ↗";
+      liveLink.href = project.homepage;
+      liveLink.target = "_blank";
+      liveLink.rel = "noopener noreferrer";
+      links.appendChild(liveLink);
     }
 
     var actions = document.createElement("div");
     actions.className = "project-detail-actions";
 
-    var cycleBtn = document.createElement("button");
-    cycleBtn.className = "project-link";
-    cycleBtn.style.background = "rgba(242, 182, 90, 0.15)";
-    cycleBtn.style.borderColor = "rgba(242, 182, 90, 0.4)";
-    cycleBtn.style.color = "var(--theme-color, #F2B65A)";
-    cycleBtn.textContent = "Change Status (" + project.status + ")";
-    cycleBtn.addEventListener("click", function () {
-      var nextMap = { active: "completed", completed: "planning", planning: "active" };
-      project.status = nextMap[project.status] || "active";
-      project.category = project.status;
-      projectsManager.save();
-      projectsManager.renderGrid();
-      projectsManager.renderDetail();
+    var syncBtn = document.createElement("button");
+    syncBtn.className = "project-link";
+    syncBtn.style.background = "rgba(242, 182, 90, 0.15)";
+    syncBtn.style.borderColor = "rgba(242, 182, 90, 0.4)";
+    syncBtn.style.color = "var(--theme-color, #F2B65A)";
+    syncBtn.textContent = "Sync with GitHub";
+    syncBtn.addEventListener("click", function () {
+      syncBtn.textContent = "Syncing...";
+      projectsManager.fetchGitHubRepos();
+      setTimeout(function () {
+        syncBtn.textContent = "Synced!";
+        setTimeout(function () {
+          syncBtn.textContent = "Sync with GitHub";
+        }, 1500);
+      }, 800);
     });
-    actions.appendChild(cycleBtn);
+    actions.appendChild(syncBtn);
 
     detailEl.appendChild(title);
-    detailEl.appendChild(status);
+    detailEl.appendChild(metaRow);
     detailEl.appendChild(desc);
     detailEl.appendChild(tags);
     detailEl.appendChild(links);
@@ -2229,6 +2459,7 @@ var projectsManager = {
     this.load();
     this.renderGrid();
     this.renderDetail();
+    this.fetchGitHubRepos();
 
     var searchEl = document.getElementById("projectsSearch");
     if (searchEl) {
@@ -2250,11 +2481,11 @@ projectsManager.init();
 
 
 /* ============================================================
-   11. Weather App
+   11. Weather App — Resilient Client-Side Meteorological Engine
    ============================================================ */
 
 var weatherManager = {
-  _storageKey: "lookout-weather-cache",
+  _storageKey: "lookout-weather-cache-v2",
   isLoading: false,
 
   fallbackData: {
@@ -2343,24 +2574,9 @@ var weatherManager = {
     if (this.isLoading) return;
     this.isLoading = true;
 
-    var loadingEl = document.querySelector(".weather-loading");
-    var currentEl = document.querySelector(".weather-current");
-    var errorEl = document.querySelector(".weather-error");
-
-    // Check cached data first to render immediately if available
-    var cached = null;
-    try {
-      var cStr = localStorage.getItem(this._storageKey);
-      if (cStr) cached = JSON.parse(cStr);
-    } catch (e) {}
-
-    if (cached) {
-      this.render(cached);
-    }
-
     var self = this;
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 3000) : null;
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 3500) : null;
 
     var url = "https://api.open-meteo.com/v1/forecast?latitude=24.8607&longitude=67.0011&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto";
 
@@ -2413,7 +2629,12 @@ var weatherManager = {
       .catch(function () {
         if (timeoutId) clearTimeout(timeoutId);
         self.isLoading = false;
-        // Fallback to cache or sensible client-side telemetry demo
+        // Never leave stuck loading — load cache or fallback telemetry
+        var cached = null;
+        try {
+          var cStr = localStorage.getItem(self._storageKey);
+          if (cStr) cached = JSON.parse(cStr);
+        } catch (e) {}
         var fallback = cached || self.fallbackData;
         self.render(fallback);
       });
@@ -2421,6 +2642,16 @@ var weatherManager = {
 
   init: function () {
     var self = this;
+
+    // Immediately render cached or fallback telemetry so the app is never blank or stuck loading
+    var cached = null;
+    try {
+      var cStr = localStorage.getItem(this._storageKey);
+      if (cStr) cached = JSON.parse(cStr);
+    } catch (e) {}
+    this.render(cached || this.fallbackData);
+
+    // Fetch fresh live weather in the background
     this.fetchWeather();
 
     var locEl = document.getElementById("weatherLocation");
@@ -2429,6 +2660,10 @@ var weatherManager = {
         self.fetchWeather();
       });
     }
+
+    window.addEventListener("online", function () {
+      self.fetchWeather();
+    });
   }
 };
 
@@ -2436,7 +2671,7 @@ weatherManager.init();
 
 
 /* ============================================================
-   12. 2048 Game App
+   12. 2048 Game App — Pointer/Swipe & Keyboard Controls
    ============================================================ */
 
 var game2048 = {
@@ -2476,58 +2711,83 @@ var game2048 = {
       });
     }
 
-    // Keyboard controls
+    // Keyboard controls (Arrow keys and WASD)
     window.addEventListener("keydown", function (e) {
       var gameWin = apps.game;
       if (!gameWin || gameWin.style.display === "none") return;
 
-      var moved = false;
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
         e.preventDefault();
-        moved = game2048.move("left");
+        game2048.move("left");
       } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
         e.preventDefault();
-        moved = game2048.move("right");
+        game2048.move("right");
       } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
         e.preventDefault();
-        moved = game2048.move("up");
+        game2048.move("up");
       } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
         e.preventDefault();
-        moved = game2048.move("down");
+        game2048.move("down");
       }
     });
 
-    // Touch / Swipe controls on game board
+    // Pointer / Swipe controls (Mouse, Touch & Stylus)
     var board = document.getElementById("gameBoard");
     if (board) {
-      var touchStartX = 0;
-      var touchStartY = 0;
+      board.style.touchAction = "none";
+      var startX = 0;
+      var startY = 0;
+      var isPointerDown = false;
 
-      board.addEventListener("touchstart", function (e) {
-        if (e.touches.length > 0) {
-          touchStartX = e.touches[0].clientX;
-          touchStartY = e.touches[0].clientY;
-        }
-      }, { passive: true });
+      var handleStart = function (clientX, clientY) {
+        startX = clientX;
+        startY = clientY;
+        isPointerDown = true;
+      };
 
-      board.addEventListener("touchend", function (e) {
-        if (e.changedTouches.length > 0) {
-          var deltaX = e.changedTouches[0].clientX - touchStartX;
-          var deltaY = e.changedTouches[0].clientY - touchStartY;
-          var absX = Math.abs(deltaX);
-          var absY = Math.abs(deltaY);
+      var handleEnd = function (clientX, clientY) {
+        if (!isPointerDown) return;
+        isPointerDown = false;
 
-          if (Math.max(absX, absY) > 25) {
-            if (absX > absY) {
-              if (deltaX > 0) game2048.move("right");
-              else game2048.move("left");
-            } else {
-              if (deltaY > 0) game2048.move("down");
-              else game2048.move("up");
-            }
+        var deltaX = clientX - startX;
+        var deltaY = clientY - startY;
+        var absX = Math.abs(deltaX);
+        var absY = Math.abs(deltaY);
+
+        if (Math.max(absX, absY) > 20) {
+          if (absX > absY) {
+            if (deltaX > 0) game2048.move("right");
+            else game2048.move("left");
+          } else {
+            if (deltaY > 0) game2048.move("down");
+            else game2048.move("up");
           }
         }
-      }, { passive: true });
+      };
+
+      if (window.PointerEvent) {
+        board.addEventListener("pointerdown", function (e) {
+          handleStart(e.clientX, e.clientY);
+        });
+        window.addEventListener("pointerup", function (e) {
+          handleEnd(e.clientX, e.clientY);
+        });
+        window.addEventListener("pointercancel", function () {
+          isPointerDown = false;
+        });
+      } else {
+        board.addEventListener("touchstart", function (e) {
+          if (e.touches.length > 0) {
+            handleStart(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }, { passive: true });
+
+        board.addEventListener("touchend", function (e) {
+          if (e.changedTouches.length > 0) {
+            handleEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+          }
+        }, { passive: true });
+      }
     }
   },
 
@@ -2688,11 +2948,11 @@ game2048.init();
 
 
 /* ============================================================
-   13. Music Player App
+   13. Music Player App — Honest Audio Engine & Controls
    ============================================================ */
 
 var musicPlayer = {
-  _storageKeyCustom: "lookout-custom-tracks",
+  _storageKeyCustom: "lookout-custom-tracks-v2",
   tracks: [],
   currentIndex: 0,
   isPlaying: false,
@@ -2702,63 +2962,85 @@ var musicPlayer = {
   audioElement: null,
   audioCtx: null,
   synthTimer: null,
+  audioStatus: "",
 
+  // Procedural & Ambient compositions synthesized in real-time via Web Audio API.
+  // Honestly labeled with their actual synthesized nature and generative soundscapes.
   defaultTracks: [
     {
-      id: "m1",
-      title: "Mayonaka no Door ~ Stay With Me",
-      artist: "Miki Matsubara",
-      duration: 208,
+      id: "m_synth_1",
+      title: "Lookout Horizon",
+      artist: "Web Audio Procedural Synth",
+      duration: 180,
       cover: "./covers/01-mayonaka-no-door.jpg",
-      notes: [261.63, 329.63, 392.00, 523.25]
+      isProcedural: true,
+      tempo: 1200,
+      chords: [
+        [261.63, 329.63, 392.00], // C major
+        [220.00, 261.63, 329.63], // A minor
+        [174.61, 220.00, 261.63], // F major
+        [196.00, 246.94, 293.66]  // G major
+      ]
     },
     {
-      id: "m2",
-      title: "Billie Jean",
-      artist: "Michael Jackson",
-      duration: 294,
+      id: "m_synth_2",
+      title: "Neon Drift",
+      artist: "Procedural Chiptune Arp",
+      duration: 210,
       cover: "./covers/02-billie-jean.jpg",
-      notes: [220.00, 277.18, 329.63, 440.00]
+      isProcedural: true,
+      tempo: 900,
+      chords: [
+        [220.00, 277.18, 329.63, 440.00],
+        [246.94, 311.13, 369.99, 493.88],
+        [261.63, 329.63, 392.00, 523.25],
+        [196.00, 246.94, 293.66, 392.00]
+      ]
     },
     {
-      id: "m3",
-      title: "Smooth Criminal",
-      artist: "Michael Jackson",
-      duration: 257,
+      id: "m_synth_3",
+      title: "Starlight Echoes",
+      artist: "Procedural Lo-Fi Ambient",
+      duration: 240,
       cover: "./covers/03-smooth-criminal.jpg",
-      notes: [220.00, 246.94, 261.63, 293.66]
+      isProcedural: true,
+      tempo: 1500,
+      chords: [
+        [196.00, 246.94, 293.66, 349.23],
+        [174.61, 220.00, 261.63, 329.63],
+        [164.81, 207.65, 246.94, 329.63],
+        [196.00, 246.94, 293.66, 392.00]
+      ]
     },
     {
-      id: "m4",
-      title: "They Don't Care About Us",
-      artist: "Michael Jackson",
-      duration: 284,
+      id: "m_synth_4",
+      title: "Solar Wind",
+      artist: "Harmonic Pad Engine",
+      duration: 220,
       cover: "./covers/04-they-dont-care-about-us.jpg",
-      notes: [196.00, 246.94, 293.66, 392.00]
+      isProcedural: true,
+      tempo: 1400,
+      chords: [
+        [293.66, 349.23, 440.00, 523.25],
+        [261.63, 329.63, 392.00, 493.88],
+        [220.00, 261.63, 329.63, 392.00],
+        [246.94, 293.66, 349.23, 440.00]
+      ]
     },
     {
-      id: "m5",
-      title: "Magic in the Air",
-      artist: "Magic System, Ahmed Chawki",
-      duration: 233,
+      id: "m_synth_5",
+      title: "Binary Dreams",
+      artist: "Pentatonic Synth Drift",
+      duration: 195,
       cover: "./covers/05-magic-in-the-air.jpg",
-      notes: [261.63, 293.66, 329.63, 392.00]
-    },
-    {
-      id: "m6",
-      title: "Levitating",
-      artist: "Dua Lipa",
-      duration: 203,
-      cover: "./covers/06-levitating.jpg",
-      notes: [293.66, 349.23, 440.00, 523.25]
-    },
-    {
-      id: "m7",
-      title: "Paint My Love",
-      artist: "Music Travel Love, Dave Moffatt",
-      duration: 228,
-      cover: "./covers/07-paint-my-love.jpg",
-      notes: [261.63, 329.63, 392.00, 493.88]
+      isProcedural: true,
+      tempo: 1100,
+      chords: [
+        [261.63, 293.66, 329.63, 392.00, 440.00],
+        [293.66, 329.63, 392.00, 440.00, 523.25],
+        [220.00, 261.63, 293.66, 329.63, 392.00],
+        [196.00, 220.00, 261.63, 293.66, 349.23]
+      ]
     }
   ],
 
@@ -2801,24 +3083,32 @@ var musicPlayer = {
     }
   },
 
-  playSynthTone: function (freq) {
+  playSynthChord: function (chordNotes) {
     if (!this.audioCtx) return;
     try {
-      var osc = this.audioCtx.createOscillator();
-      var gain = this.audioCtx.createGain();
-      var vol = (lookoutState.volume / 100) * 0.08;
+      var self = this;
+      var baseVol = (lookoutState.volume / 100) * 0.05;
+      if (baseVol <= 0.0001) return;
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq || 330, this.audioCtx.currentTime);
+      var now = this.audioCtx.currentTime;
 
-      gain.gain.setValueAtTime(vol, this.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + 1.2);
+      chordNotes.forEach(function (freq, i) {
+        var osc = self.audioCtx.createOscillator();
+        var gain = self.audioCtx.createGain();
 
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
+        osc.type = i === 0 ? "triangle" : "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.05);
 
-      osc.start();
-      osc.stop(this.audioCtx.currentTime + 1.3);
+        gain.gain.setValueAtTime(0.0001, now + i * 0.05);
+        gain.gain.linearRampToValueAtTime(baseVol / chordNotes.length, now + i * 0.05 + 0.1);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.05 + 1.2);
+
+        osc.connect(gain);
+        gain.connect(self.audioCtx.destination);
+
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 1.3);
+      });
     } catch (e) {}
   },
 
@@ -2826,15 +3116,25 @@ var musicPlayer = {
     this.stopSynthBeats();
     var self = this;
     var track = this.tracks[this.currentIndex] || {};
-    var notes = track.notes || [261.63, 329.63, 392.00, 523.25];
+    var chords = track.chords || [
+      [261.63, 329.63, 392.00],
+      [220.00, 261.63, 329.63],
+      [174.61, 220.00, 261.63],
+      [196.00, 246.94, 293.66]
+    ];
+    var intervalMs = track.tempo || 1200;
     var step = 0;
+
+    // Trigger first chord immediately
+    this.playSynthChord(chords[0]);
+    step = 1;
 
     this.synthTimer = setInterval(function () {
       if (!self.isPlaying) return;
-      var note = notes[step % notes.length];
-      self.playSynthTone(note);
+      var chord = chords[step % chords.length];
+      self.playSynthChord(chord);
       step++;
-    }, 1400);
+    }, intervalMs);
   },
 
   stopSynthBeats: function () {
@@ -2852,6 +3152,7 @@ var musicPlayer = {
     var track = this.tracks[this.currentIndex];
     this.currentTime = 0;
     this.duration = track.duration || 180;
+    this.audioStatus = "";
 
     var titleEl = document.getElementById("musicTitle");
     if (titleEl) titleEl.textContent = track.title;
@@ -2877,7 +3178,7 @@ var musicPlayer = {
     var progEl = document.getElementById("musicProgress");
     if (progEl) progEl.value = 0;
 
-    // Handle real audio if URL present
+    // Handle real external audio element if URL is present
     if (this.audioElement) {
       this.audioElement.pause();
       this.audioElement = null;
@@ -2886,15 +3187,32 @@ var musicPlayer = {
     if (track.url) {
       try {
         var self = this;
-        var audio = new Audio(track.url);
+        var audio = new Audio();
+        audio.src = track.url;
+        audio.preload = "auto";
         audio.volume = Math.max(0, Math.min(1, lookoutState.volume / 100));
+
+        audio.addEventListener("loadedmetadata", function () {
+          if (audio.duration && !isNaN(audio.duration)) {
+            self.duration = audio.duration;
+            if (durEl) durEl.textContent = self.formatTime(self.duration);
+          }
+        });
+
         audio.addEventListener("ended", function () {
           self.next();
         });
+
         audio.addEventListener("error", function () {
-          // Graceful fallback if external audio fails
+          // Honest handling: state clearly that audio could not be loaded
+          self.audioStatus = "Audio source unavailable";
+          if (artistEl) {
+            artistEl.textContent = track.artist + " (Audio source unavailable)";
+          }
+          self.pause();
           self.audioElement = null;
         });
+
         this.audioElement = audio;
       } catch (e) {
         this.audioElement = null;
@@ -2908,6 +3226,17 @@ var musicPlayer = {
   },
 
   play: function () {
+    var self = this;
+    var track = this.tracks[this.currentIndex];
+
+    // If an external URL track errored or is missing
+    if (track.url && !this.audioElement && this.audioStatus === "Audio source unavailable") {
+      var artistEl = document.getElementById("musicArtist");
+      if (artistEl) artistEl.textContent = track.artist + " (Audio source unavailable)";
+      this.pause();
+      return;
+    }
+
     this.initAudioContext();
     this.isPlaying = true;
 
@@ -2917,10 +3246,11 @@ var musicPlayer = {
     if (this.audioElement) {
       var p = this.audioElement.play();
       if (p && p.catch) {
-        var self = this;
-        p.catch(function () {
-          self.audioElement = null;
-          self.startSynthBeats();
+        p.catch(function (err) {
+          self.audioStatus = "Playback failed: " + (err.message || "Unknown error");
+          var artistEl = document.getElementById("musicArtist");
+          if (artistEl) artistEl.textContent = track.artist + " (Playback unavailable)";
+          self.pause();
         });
       }
     } else {
@@ -2928,7 +3258,6 @@ var musicPlayer = {
     }
 
     clearInterval(this.timerInterval);
-    var self = this;
     this.timerInterval = setInterval(function () {
       if (!self.isPlaying) return;
 
@@ -3088,7 +3417,7 @@ var musicPlayer = {
       return;
     }
 
-    var artist = artistEl && artistEl.value.trim() ? artistEl.value.trim() : "Independent Artist";
+    var artist = artistEl && artistEl.value.trim() ? artistEl.value.trim() : "Custom Track";
     var duration = durEl ? parseInt(durEl.value, 10) || 180 : 180;
     var url = urlEl ? urlEl.value.trim() : "";
 
@@ -3098,7 +3427,13 @@ var musicPlayer = {
       artist: artist,
       duration: duration,
       url: url,
-      notes: [261.63, 329.63, 392.00, 440.00]
+      isProcedural: !url,
+      chords: [
+        [261.63, 329.63, 392.00],
+        [220.00, 261.63, 329.63],
+        [174.61, 220.00, 261.63],
+        [196.00, 246.94, 293.66]
+      ]
     };
 
     this.tracks.push(newTrack);
