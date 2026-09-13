@@ -198,7 +198,7 @@ function buildAppDrawer() {
     { id: "crate", name: "Crate", icon: "./crate.svg" },
     { id: "terminal", name: "Terminal", icon: "./terminal.svg" },
     { id: "lock", name: "Lock", icon: "./lock.svg" },
-    { id: "contacts", name: "Contacts", icon: "./icons/contacts.svg" },
+    { id: "calculator", name: "Calculator", icon: "./icons/calculator.svg" },
     { id: "projects", name: "Projects", icon: "./icons/projects.svg" },
     { id: "weather", name: "Weather", icon: "./icons/weather.svg" },
     { id: "game", name: "2048", icon: "./icons/game.svg" },
@@ -1067,7 +1067,7 @@ var windowAppMap = {
   crate: "crate",
   terminal: "terminal",
   lock: "lock",
-  contacts: "contacts",
+  calculator: "calculator",
   projects: "projects",
   weather: "weather",
   game: "game",
@@ -1601,351 +1601,272 @@ terminalInput.addEventListener("keydown", function (e) {
 
 
 /* ============================================================
-   9. Contacts App
+   9. Calculator App — Precision Glassmorphism Engine
    ============================================================ */
 
-var contactsManager = {
-  _storageKey: "lookout-contacts",
-  contacts: [],
-  selectedId: null,
+var calculatorManager = {
+  currentInput: "0",
+  previousInput: "",
+  operator: null,
+  waitingForSecondOperand: false,
+  history: "",
 
-  defaultContacts: [
-    {
-      id: "c1",
-      name: "Syed Sufiyan Hamza",
-      phone: "+92 300 1234567",
-      email: "contact@yourfiyan.dev",
-      location: "Karachi, PK",
-      notes: "Lead Architect of Lookout OS. Crafting fluid web desktop experiences."
-    },
-    {
-      id: "c2",
-      name: "Ada Lovelace",
-      phone: "+44 20 7946 0912",
-      email: "ada@analytical.engine",
-      location: "London, UK",
-      notes: "First computer programmer. Wrote the first algorithm intended to be executed by a machine."
-    },
-    {
-      id: "c3",
-      name: "Alan Turing",
-      phone: "+44 1625 522000",
-      email: "alan@bletchley.ac.uk",
-      location: "Wilmslow, UK",
-      notes: "Father of theoretical computer science, cryptography, and artificial intelligence."
-    },
-    {
-      id: "c4",
-      name: "Margaret Hamilton",
-      phone: "+1 617 253 1000",
-      email: "margaret@mit.edu",
-      location: "Cambridge, MA",
-      notes: "Director of Software Engineering Division at MIT Instrumentation Lab; developed Apollo 11 flight software."
-    },
-    {
-      id: "c5",
-      name: "Linus Torvalds",
-      phone: "+1 503 555 0199",
-      email: "linus@kernel.org",
-      location: "Portland, OR",
-      notes: "Creator and principal developer of the Linux kernel and Git revision control."
-    }
-  ],
+  updateDisplay: function () {
+    var displayEl = document.getElementById("calcDisplay");
+    var historyEl = document.getElementById("calcHistory");
 
-  load: function () {
-    try {
-      var saved = localStorage.getItem(this._storageKey);
-      if (saved) {
-        this.contacts = JSON.parse(saved);
+    if (displayEl) {
+      var numStr = this.currentInput;
+      displayEl.textContent = numStr;
+
+      if (numStr.length > 14) {
+        displayEl.style.fontSize = "18px";
+      } else if (numStr.length > 10) {
+        displayEl.style.fontSize = "24px";
       } else {
-        this.contacts = this.defaultContacts.slice();
-        this.save();
+        displayEl.style.fontSize = "32px";
       }
-    } catch (e) {
-      this.contacts = this.defaultContacts.slice();
-    }
-    if (!this.selectedId && this.contacts.length > 0) {
-      this.selectedId = this.contacts[0].id;
-    }
-  },
-
-  save: function () {
-    try {
-      localStorage.setItem(this._storageKey, JSON.stringify(this.contacts));
-    } catch (e) {}
-  },
-
-  getInitials: function (name) {
-    if (!name) return "?";
-    var parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-  },
-
-  getContact: function (id) {
-    for (var i = 0; i < this.contacts.length; i++) {
-      if (this.contacts[i].id === id) return this.contacts[i];
-    }
-    return null;
-  },
-
-  renderList: function (filterQuery) {
-    var listEl = document.getElementById("contactsList");
-    if (!listEl) return;
-    listEl.innerHTML = "";
-
-    var q = (filterQuery || "").toLowerCase().trim();
-    var filtered = this.contacts.filter(function (c) {
-      if (!q) return true;
-      var nameMatch = c.name && c.name.toLowerCase().indexOf(q) !== -1;
-      var phoneMatch = c.phone && c.phone.toLowerCase().indexOf(q) !== -1;
-      var emailMatch = c.email && c.email.toLowerCase().indexOf(q) !== -1;
-      var notesMatch = c.notes && c.notes.toLowerCase().indexOf(q) !== -1;
-      return nameMatch || phoneMatch || emailMatch || notesMatch;
-    });
-
-    if (filtered.length === 0) {
-      var empty = document.createElement("div");
-      empty.className = "contacts-empty-detail";
-      empty.textContent = q ? "No contacts matching search" : "No contacts yet";
-      listEl.appendChild(empty);
-      return;
     }
 
-    filtered.forEach(function (c) {
-      var card = document.createElement("div");
-      card.className = "contact-card" + (c.id === contactsManager.selectedId ? " selected" : "");
-      card.setAttribute("data-id", c.id);
-
-      var avatar = document.createElement("div");
-      avatar.className = "contact-avatar";
-      avatar.textContent = contactsManager.getInitials(c.name);
-
-      var info = document.createElement("div");
-      info.style.flex = "1";
-      info.style.minWidth = "0";
-
-      var nameEl = document.createElement("div");
-      nameEl.className = "contact-card-name";
-      nameEl.textContent = c.name;
-
-      var phoneEl = document.createElement("div");
-      phoneEl.className = "contact-card-phone";
-      phoneEl.textContent = c.phone || c.email || "";
-
-      info.appendChild(nameEl);
-      info.appendChild(phoneEl);
-
-      card.style.display = "flex";
-      card.style.alignItems = "center";
-      card.style.gap = "10px";
-      card.appendChild(avatar);
-      card.appendChild(info);
-
-      card.addEventListener("click", function () {
-        contactsManager.selectContact(c.id);
-      });
-
-      listEl.appendChild(card);
-    });
-  },
-
-  renderDetail: function () {
-    var detailEl = document.getElementById("contactsDetail");
-    if (!detailEl) return;
-    detailEl.innerHTML = "";
-
-    var contact = this.getContact(this.selectedId);
-    if (!contact) {
-      detailEl.innerHTML = '<div class="contacts-empty-detail">Select a contact to view details</div>';
-      return;
+    if (historyEl) {
+      historyEl.textContent = this.history || " ";
     }
 
-    // Header
-    var header = document.createElement("div");
-    header.className = "contact-detail-header";
-
-    var avatar = document.createElement("div");
-    avatar.className = "contact-avatar";
-    avatar.style.width = "48px";
-    avatar.style.height = "48px";
-    avatar.style.fontSize = "20px";
-    avatar.textContent = this.getInitials(contact.name);
-
-    var nameWrap = document.createElement("div");
-    var nameEl = document.createElement("div");
-    nameEl.className = "contact-detail-name";
-    nameEl.textContent = contact.name;
-    nameWrap.appendChild(nameEl);
-
-    header.appendChild(avatar);
-    header.appendChild(nameWrap);
-    detailEl.appendChild(header);
-
-    // Sections helper
-    function addSection(label, value) {
-      if (!value) return;
-      var sec = document.createElement("div");
-      sec.className = "contact-detail-section";
-      sec.innerHTML = '<div class="contact-detail-label">' + label + '</div><div class="contact-detail-value">' + value + '</div>';
-      detailEl.appendChild(sec);
-    }
-
-    addSection("Phone", contact.phone);
-    addSection("Email", contact.email);
-    addSection("Location", contact.location);
-    addSection("Notes", contact.notes);
-
-    // Actions (Edit / Delete)
-    var actions = document.createElement("div");
-    actions.className = "contact-detail-actions";
-
-    var editBtn = document.createElement("button");
-    editBtn.className = "contact-action-btn";
-    editBtn.textContent = "Edit Contact";
-    editBtn.addEventListener("click", function () {
-      contactsManager.openForm(contact);
-    });
-
-    var delBtn = document.createElement("button");
-    delBtn.className = "contact-action-btn danger";
-    delBtn.textContent = "Delete";
-    delBtn.addEventListener("click", function () {
-      if (confirm("Delete contact \"" + contact.name + "\"?")) {
-        contactsManager.deleteContact(contact.id);
+    var opBtns = document.querySelectorAll(".calc-btn.op");
+    var self = this;
+    opBtns.forEach(function (btn) {
+      if (self.operator && btn.getAttribute("data-val") === self.operator && self.waitingForSecondOperand) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
       }
     });
-
-    actions.appendChild(editBtn);
-    actions.appendChild(delBtn);
-    detailEl.appendChild(actions);
   },
 
-  selectContact: function (id) {
-    this.selectedId = id;
-    var searchEl = document.getElementById("contactsSearch");
-    this.renderList(searchEl ? searchEl.value : "");
-    this.renderDetail();
-  },
-
-  deleteContact: function (id) {
-    this.contacts = this.contacts.filter(function (c) { return c.id !== id; });
-    this.save();
-    if (this.selectedId === id) {
-      this.selectedId = this.contacts.length > 0 ? this.contacts[0].id : null;
-    }
-    var searchEl = document.getElementById("contactsSearch");
-    this.renderList(searchEl ? searchEl.value : "");
-    this.renderDetail();
-  },
-
-  currentEditingId: null,
-
-  openForm: function (contact) {
-    var overlay = document.getElementById("contactsFormOverlay");
-    if (!overlay) return;
-
-    this.currentEditingId = contact ? contact.id : null;
-    var titleEl = document.getElementById("contactFormTitle");
-    if (titleEl) {
-      titleEl.textContent = contact ? "Edit Contact" : "New Contact";
-    }
-
-    document.getElementById("contactInputName").value = contact ? contact.name : "";
-    document.getElementById("contactInputPhone").value = contact ? contact.phone || "" : "";
-    document.getElementById("contactInputEmail").value = contact ? contact.email || "" : "";
-    document.getElementById("contactInputLocation").value = contact ? contact.location || "" : "";
-    document.getElementById("contactInputNotes").value = contact ? contact.notes || "" : "";
-
-    overlay.style.display = "flex";
-    document.getElementById("contactInputName").focus();
-  },
-
-  closeForm: function () {
-    var overlay = document.getElementById("contactsFormOverlay");
-    if (overlay) overlay.style.display = "none";
-    this.currentEditingId = null;
-  },
-
-  saveForm: function () {
-    var name = document.getElementById("contactInputName").value.trim();
-    if (!name) {
-      alert("Please provide a contact name.");
-      return;
-    }
-
-    var phone = document.getElementById("contactInputPhone").value.trim();
-    var email = document.getElementById("contactInputEmail").value.trim();
-    var location = document.getElementById("contactInputLocation").value.trim();
-    var notes = document.getElementById("contactInputNotes").value.trim();
-
-    if (this.currentEditingId) {
-      // Update
-      var existing = this.getContact(this.currentEditingId);
-      if (existing) {
-        existing.name = name;
-        existing.phone = phone;
-        existing.email = email;
-        existing.location = location;
-        existing.notes = notes;
-      }
+  inputDigit: function (digit) {
+    if (this.waitingForSecondOperand) {
+      this.currentInput = String(digit);
+      this.waitingForSecondOperand = false;
     } else {
-      // New
-      var newContact = {
-        id: "c_" + Date.now(),
-        name: name,
-        phone: phone,
-        email: email,
-        location: location,
-        notes: notes
-      };
-      this.contacts.unshift(newContact);
-      this.selectedId = newContact.id;
+      if (this.currentInput === "0" && digit !== ".") {
+        this.currentInput = String(digit);
+      } else if (this.currentInput.length < 16) {
+        this.currentInput += String(digit);
+      }
+    }
+    this.updateDisplay();
+  },
+
+  inputDecimal: function () {
+    if (this.waitingForSecondOperand) {
+      this.currentInput = "0.";
+      this.waitingForSecondOperand = false;
+      this.updateDisplay();
+      return;
+    }
+    if (this.currentInput.indexOf(".") === -1) {
+      this.currentInput += ".";
+      this.updateDisplay();
+    }
+  },
+
+  handleOperator: function (nextOperator) {
+    var inputValue = parseFloat(this.currentInput);
+    var opSymbol = { "+": "+", "-": "−", "*": "×", "/": "÷" }[nextOperator] || nextOperator;
+
+    if (this.operator && this.waitingForSecondOperand) {
+      this.operator = nextOperator;
+      this.history = this.previousInput + " " + opSymbol;
+      this.updateDisplay();
+      return;
     }
 
-    this.save();
-    this.closeForm();
-    var searchEl = document.getElementById("contactsSearch");
-    this.renderList(searchEl ? searchEl.value : "");
-    this.renderDetail();
+    if (this.previousInput === "") {
+      this.previousInput = String(inputValue);
+    } else if (this.operator) {
+      var result = this.calculate(parseFloat(this.previousInput), inputValue, this.operator);
+      this.currentInput = String(this.trimPrecision(result));
+      this.previousInput = String(result);
+    }
+
+    this.waitingForSecondOperand = true;
+    this.operator = nextOperator;
+    this.history = this.previousInput + " " + opSymbol;
+    this.updateDisplay();
+  },
+
+  calculate: function (first, second, op) {
+    if (op === "+") return first + second;
+    if (op === "-") return first - second;
+    if (op === "*") return first * second;
+    if (op === "/") {
+      if (second === 0) return "Error";
+      return first / second;
+    }
+    return second;
+  },
+
+  trimPrecision: function (val) {
+    if (typeof val !== "number" || isNaN(val)) return val;
+    return parseFloat(val.toPrecision(12));
+  },
+
+  equals: function () {
+    if (!this.operator || this.previousInput === "") return;
+
+    var first = parseFloat(this.previousInput);
+    var second = parseFloat(this.currentInput);
+    var opSymbol = { "+": "+", "-": "−", "*": "×", "/": "÷" }[this.operator] || this.operator;
+
+    var result = this.calculate(first, second, this.operator);
+    if (result === "Error") {
+      this.history = first + " " + opSymbol + " 0 =";
+      this.currentInput = "Cannot divide by 0";
+      this.previousInput = "";
+      this.operator = null;
+      this.waitingForSecondOperand = true;
+      this.updateDisplay();
+      return;
+    }
+
+    var trimmed = this.trimPrecision(result);
+    this.history = first + " " + opSymbol + " " + second + " =";
+    this.currentInput = String(trimmed);
+    this.previousInput = "";
+    this.operator = null;
+    this.waitingForSecondOperand = true;
+    this.updateDisplay();
+  },
+
+  clear: function () {
+    this.currentInput = "0";
+    this.previousInput = "";
+    this.operator = null;
+    this.waitingForSecondOperand = false;
+    this.history = "";
+    this.updateDisplay();
+  },
+
+  toggleSign: function () {
+    var val = parseFloat(this.currentInput);
+    if (val !== 0) {
+      this.currentInput = String(-val);
+      this.updateDisplay();
+    }
+  },
+
+  percent: function () {
+    var val = parseFloat(this.currentInput);
+    this.currentInput = String(this.trimPrecision(val / 100));
+    this.updateDisplay();
+  },
+
+  backspace: function () {
+    if (this.waitingForSecondOperand) return;
+    if (this.currentInput.length > 1) {
+      this.currentInput = this.currentInput.slice(0, -1);
+    } else {
+      this.currentInput = "0";
+    }
+    this.updateDisplay();
+  },
+
+  sqrt: function () {
+    var val = parseFloat(this.currentInput);
+    if (val < 0) {
+      this.currentInput = "Error";
+    } else {
+      this.history = "√(" + val + ")";
+      this.currentInput = String(this.trimPrecision(Math.sqrt(val)));
+    }
+    this.waitingForSecondOperand = true;
+    this.updateDisplay();
+  },
+
+  sqr: function () {
+    var val = parseFloat(this.currentInput);
+    this.history = "sqr(" + val + ")";
+    this.currentInput = String(this.trimPrecision(val * val));
+    this.waitingForSecondOperand = true;
+    this.updateDisplay();
+  },
+
+  reciprocal: function () {
+    var val = parseFloat(this.currentInput);
+    if (val === 0) {
+      this.currentInput = "Error";
+    } else {
+      this.history = "1/(" + val + ")";
+      this.currentInput = String(this.trimPrecision(1 / val));
+    }
+    this.waitingForSecondOperand = true;
+    this.updateDisplay();
   },
 
   init: function () {
-    this.load();
-    this.renderList();
-    this.renderDetail();
+    var self = this;
+    this.updateDisplay();
 
-    var searchEl = document.getElementById("contactsSearch");
-    if (searchEl) {
-      searchEl.addEventListener("input", function () {
-        contactsManager.renderList(this.value);
+    try {
+      localStorage.removeItem("lookout-contacts");
+    } catch (e) {}
+
+    var btnContainer = document.querySelector(".calc-keypad");
+    if (btnContainer) {
+      btnContainer.addEventListener("click", function (e) {
+        var btn = e.target.closest(".calc-btn");
+        if (!btn) return;
+
+        var val = btn.getAttribute("data-val");
+        var action = btn.getAttribute("data-action");
+
+        if (val !== null) {
+          if (val === ".") {
+            self.inputDecimal();
+          } else if (action === "op") {
+            self.handleOperator(val);
+          } else {
+            self.inputDigit(val);
+          }
+        } else if (action) {
+          if (action === "clear") self.clear();
+          else if (action === "sign") self.toggleSign();
+          else if (action === "percent") self.percent();
+          else if (action === "equals") self.equals();
+          else if (action === "backspace") self.backspace();
+          else if (action === "sqrt") self.sqrt();
+          else if (action === "sqr") self.sqr();
+          else if (action === "recip") self.reciprocal();
+        }
       });
     }
 
-    var addBtn = document.getElementById("contactsAdd");
-    if (addBtn) {
-      addBtn.addEventListener("click", function () {
-        contactsManager.openForm(null);
-      });
-    }
+    window.addEventListener("keydown", function (e) {
+      var calcWin = apps.calculator;
+      if (!calcWin || calcWin.style.display === "none") return;
 
-    var cancelBtn = document.getElementById("contactFormCancel");
-    if (cancelBtn) {
-      cancelBtn.addEventListener("click", function () {
-        contactsManager.closeForm();
-      });
-    }
-
-    var saveBtn = document.getElementById("contactFormSave");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", function () {
-        contactsManager.saveForm();
-      });
-    }
+      if (e.key >= "0" && e.key <= "9") {
+        self.inputDigit(e.key);
+      } else if (e.key === ".") {
+        self.inputDecimal();
+      } else if (e.key === "+" || e.key === "-" || e.key === "*" || e.key === "/") {
+        self.handleOperator(e.key);
+      } else if (e.key === "Enter" || e.key === "=") {
+        e.preventDefault();
+        self.equals();
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        self.backspace();
+      } else if (e.key === "Escape" || e.key.toLowerCase() === "c") {
+        self.clear();
+      } else if (e.key === "%") {
+        self.percent();
+      }
+    });
   }
 };
 
-contactsManager.init();
+calculatorManager.init();
 
 
 /* ============================================================
@@ -3785,7 +3706,7 @@ notesManager.init();
 var welcomeScreen = initializeWindow("welcome");
 var crateScreen = initializeWindow("crate");
 var terminalScreen = initializeWindow("terminal");
-var contactsScreen = initializeWindow("contacts");
+var calculatorScreen = initializeWindow("calculator");
 var projectsScreen = initializeWindow("projects");
 var weatherScreen = initializeWindow("weather");
 var gameScreen = initializeWindow("game");
