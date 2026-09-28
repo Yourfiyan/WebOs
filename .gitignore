@@ -4,3 +4,10 @@ node_modules/
 
 # Tutorial source material
 Pasted/
+
+# Git worktrees
+worktrees/
+
+# Legacy agent data
+.claude/
+.agents/archive/

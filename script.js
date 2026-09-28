@@ -1884,8 +1884,8 @@ var projectsManager = {
   defaultProjects: [
     {
       id: "repo_WebOs",
-      title: "Lookout OS (WebOs)",
-      desc: "In-browser desktop operating system built with pure Web APIs and liquid glass styling.",
+      title: "WebOs",
+      desc: "",
       category: "active",
       status: "active",
       language: "JavaScript",
@@ -1912,8 +1912,8 @@ var projectsManager = {
     },
     {
       id: "repo_game-id",
-      title: "Game ID",
-      desc: "Privacy-first client-side game library analytics and dashboard. Parses Epic Games account exports directly in browser.",
+      title: "game-id",
+      desc: "",
       category: "active",
       status: "active",
       language: "JavaScript",
@@ -1982,7 +1982,7 @@ var projectsManager = {
     },
     {
       id: "repo_customer-support-ai-agent",
-      title: "Customer Support AI Agent",
+      title: "customer-support-ai-agent",
       desc: "Multi-agent customer support system using Google Gemini AI - Built for Kaggle Agents Intensive",
       category: "completed",
       status: "completed",

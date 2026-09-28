@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Lookout OS: Dev Server (Python)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python -m http.server 8000",
+      "presentation": {
+        "group": "servers",
+        "reveal": "always"
+      }
+    },
+    {
+      "name": "Lookout OS: Dev Server (Threading)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "python -c \"import os; from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler; ThreadingHTTPServer(('', int(os.environ.get('PORT', '8000'))), SimpleHTTPRequestHandler).serve_forever()\"",
+      "presentation": {
+        "group": "servers",
+        "reveal": "always"
+      }
+    }
+  ]
+}
