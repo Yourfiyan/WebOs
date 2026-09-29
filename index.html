@@ -35,6 +35,30 @@
       </button>
     </div>
 
+    <!-- Interactive Torch / Flashlight Screen Glow -->
+    <div id="lsFlashlightOverlay" class="ls-flashlight-overlay" style="display:none;" title="Click anywhere to turn off flashlight">
+      <div class="flashlight-glow-content">
+        <div class="flashlight-icon">🔦</div>
+        <p>Torch Activated · Click to dismiss</p>
+      </div>
+    </div>
+
+    <!-- Interactive Camera / Mirror Overlay -->
+    <div id="lsCameraOverlay" class="ls-camera-overlay" style="display:none;">
+      <div class="camera-mirror-box">
+        <div class="camera-lens-header">
+          <span>Lookout Tower Cam</span>
+          <button id="lsCameraClose" class="camera-lens-close" type="button">&times;</button>
+        </div>
+        <video id="lsCameraVideo" autoplay playsinline muted></video>
+        <div id="lsCameraFallback" class="camera-fallback">
+          <div class="camera-shutter-art">📷</div>
+          <p>Tower Optical Sensor Active</p>
+          <button id="lsCameraSnap" class="pill pill-solid" type="button" style="margin-top: 10px;">Take Snapshot</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Lock Screen Customization Overlays -->
     <div id="lsEditOverlay" class="ls-edit-overlay">
       <div class="ls-edit-top-bar">
@@ -240,9 +264,21 @@
     <div class="windowheader" id="calculatorheader">
       <div class="closebutton" id="calculatorclose" title="Close"></div>
       <p class="headertext">Calculator</p>
-      <div class="headerspacer"></div>
+      <div class="headerspacer">
+        <button id="calcTapeToggle" class="calc-tape-toggle-btn" type="button" title="Calculation History Tape">📜</button>
+      </div>
     </div>
     <div class="windowbody calculator-body">
+      <!-- Paper Tape Roll History Drawer -->
+      <div id="calcTape" class="calc-tape" style="display:none;">
+        <div class="calc-tape-header">
+          <span>Tape Audit Roll</span>
+          <button id="calcTapeClear" class="calc-tape-clear-btn" type="button">Clear</button>
+        </div>
+        <div id="calcTapeList" class="calc-tape-list">
+          <div class="calc-tape-empty">No calculations recorded yet</div>
+        </div>
+      </div>
       <div class="calc-screen">
         <div class="calc-history" id="calcHistory">&nbsp;</div>
         <div class="calc-display" id="calcDisplay">0</div>
@@ -312,6 +348,13 @@
       <div class="headerspacer"></div>
     </div>
     <div class="windowbody weather-body">
+      <div class="weather-cities" id="weatherCities">
+        <button class="weather-city-btn active" data-city="tokyo" type="button">Tokyo</button>
+        <button class="weather-city-btn" data-city="sf" type="button">SF</button>
+        <button class="weather-city-btn" data-city="london" type="button">London</button>
+        <button class="weather-city-btn" data-city="mumbai" type="button">Mumbai</button>
+        <button class="weather-city-btn" data-city="reykjavik" type="button">Reykjavik</button>
+      </div>
       <div class="weather-loading" id="weatherLoading">Fetching live meteorological data...</div>
       <div class="weather-current" id="weatherCurrent" style="display:none;">
         <div class="weather-location" id="weatherLocation">&mdash;</div>
@@ -332,21 +375,30 @@
           </div>
         </div>
         <div class="weather-forecast" id="weatherForecast"></div>
+        <div class="weather-ranger-log" id="weatherRangerLog">
+          <div class="ranger-badge">Lookout Ranger Station Log</div>
+          <div class="ranger-text" id="weatherRangerText">Tower #4 reports: Clear horizon, mild breeze. Optimal conditions for deploying to production.</div>
+        </div>
       </div>
       <div class="weather-error" id="weatherError" style="display:none;">Unable to load weather data</div>
     </div>
   </div>
 
   <!-- 7. 2048 Game Window -->
-  <div class="window" id="game" style="top: calc(50% - 220px); left: calc(50% - 180px); width: 360px; height: 440px; display: none;">
+  <div class="window" id="game" style="top: calc(50% - 220px); left: calc(50% - 180px); width: 360px; height: 460px; display: none;">
     <div class="windowheader" id="gameheader">
       <div class="closebutton" id="gameclose" title="Close"></div>
       <p class="headertext">2048</p>
-      <div class="headerspacer"></div>
+      <div class="headerspacer">
+        <button id="gameModeToggle" class="game-mode-toggle-btn" type="button" title="Switch Dev Mode / Numbers">Dev Mode</button>
+      </div>
     </div>
     <div class="windowbody game-body">
       <div class="game-header">
-        <div class="game-score">Score: <span id="gameScore">0</span></div>
+        <div class="game-score-box">
+          <div class="game-score">Score: <span id="gameScore">0</span></div>
+          <div class="game-score game-best-score">Best: <span id="gameBestScore">0</span></div>
+        </div>
         <button id="gameNewGame" class="game-new-btn" type="button">New Game</button>
       </div>
       <div id="gameBoard" class="game-board"></div>
@@ -369,10 +421,13 @@
             <div class="music-artwork-placeholder">♪</div>
           </div>
           <div class="music-track-info">
+            <div class="music-synth-badge"><span class="pulse-dot"></span> Web Audio Lo-Fi Generator</div>
             <div class="music-track-title" id="musicTitle">No track selected</div>
             <div class="music-track-artist" id="musicArtist">Pick a song from the library</div>
           </div>
         </div>
+        <!-- Live Audio Reactive Visualizer Canvas -->
+        <canvas id="musicVisualizer" class="music-visualizer" width="260" height="38"></canvas>
         <div class="music-controls">
           <button id="musicPrev" class="music-control-btn" type="button" title="Previous">⏮</button>
           <button id="musicPlayPause" class="music-control-btn music-play-btn" type="button" title="Play/Pause">▶</button>
@@ -443,8 +498,13 @@
       <div class="notes-editor">
         <div id="notesEmpty" class="notes-empty">Select or create a note to start typing</div>
         <div id="notesEditor" class="notes-editor-content" style="display:none;">
+          <div class="notes-toolbar">
+            <button id="notesPreviewToggle" class="notes-tool-btn" type="button">Preview Markdown</button>
+            <span id="notesStats" class="notes-stats">0 words · 0 chars</span>
+          </div>
           <input type="text" id="notesTitle" class="notes-title-input" placeholder="Title...">
-          <textarea id="notesBody" class="notes-body-input" placeholder="Start writing..."></textarea>
+          <div id="notesPreview" class="notes-preview-content" style="display:none;"></div>
+          <textarea id="notesBody" class="notes-body-input" placeholder="Start writing (Markdown supported: # H1, ## H2, **bold**, *italic*, `code`, - list)..."></textarea>
           <div class="notes-footer">
             <span id="notesTimestamp" class="notes-timestamp"></span>
             <button id="notesDelete" class="notes-delete-btn" type="button">Delete</button>
@@ -524,6 +584,20 @@
       </filter>
     </defs>
   </svg>
+
+  <!-- Desktop Right-Click Context Menu -->
+  <div id="desktopContextMenu" class="desktop-context-menu" style="display: none;">
+    <div class="ctx-item" data-action="terminal"><span class="ctx-icon">⚡</span> Open Terminal</div>
+    <div class="ctx-item" data-action="notes"><span class="ctx-icon">📝</span> New Note</div>
+    <div class="ctx-item" data-action="music"><span class="ctx-icon">🎵</span> Lo-Fi Music Player</div>
+    <div class="ctx-item" data-action="crate"><span class="ctx-icon">💿</span> Crate Records</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" data-action="theme"><span class="ctx-icon">🎨</span> Next Theme Color</div>
+    <div class="ctx-item" data-action="night"><span class="ctx-icon">🌙</span> Toggle Night Mode</div>
+    <div class="ctx-item" data-action="specs"><span class="ctx-icon">ℹ️</span> System Specs (neofetch)</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" data-action="clean"><span class="ctx-icon">🧹</span> Close All Windows</div>
+  </div>
 
   <script src="script.js"></script>
 </body>

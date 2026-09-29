@@ -7,7 +7,3 @@ Pasted/
 
 # Git worktrees
 worktrees/
-
-# Legacy agent data
-.claude/
-.agents/archive/
